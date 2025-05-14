@@ -8,7 +8,7 @@ All scripts, data processing steps, and model evaluations are clearly documented
 
 The raw data and intermediate files are stored in the `AGRO920` folder of my Beocat user directory. If you'd like access, feel free to ask — I’ll gladly give permission. 
 
-**The `results` and `scripts` folders are also available for anyone interested in the pipeline or plots without digging through a cluster.**
+**The `results` (only the main matrix) and `scripts` folders are also available for anyone interested in the pipeline or plots without digging through a cluster.**
 
 Thanks for stopping by! If anything grabs your attention, feel totally free to reach out. I’d love to hear from you!
 
