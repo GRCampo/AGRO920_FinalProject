@@ -1,0 +1,19 @@
+delete_merged_file: true
+language:
+  ui:
+    chapter_name: ""
+    
+rmd_files: ['index.Rmd', 
+            '01_Data_Acquisition.Rmd', '02_Quality_Control.Rmd',
+            '03_Pseudosamples.Rmd', '04_kmer_quant.Rmd',
+            '05_ExploratoryAnalysis.Rmd', '06_Models.Rmd']
+
+output_dir: "~/AGRO920/AGRO920_project"
+
+bookdown::gitbook:
+  css: "style.css"  
+  split_by: "chapter"  
+
+knitr:
+  opts_chunk:
+    echo: false

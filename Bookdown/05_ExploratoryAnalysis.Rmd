@@ -1,0 +1,112 @@
+---
+title: "Exploratory Analysis"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# Exploratory Analysis
+
+To explore the structure and quality of the filtered k-mer count matrix, I ran a few exploratory analyses to understand the structure and quality of the filtered k-mer count matrix. These steps help expose hidden patterns across pseudo-samples, flag weird samples, and check whether the data even has a chance of being separable in a lower-dimensional space.
+
+```{r message=FALSE, warning=FALSE}
+mat <- readRDS('~/AGRO920/results/count_clean2.rds')
+
+treat_map <- c(SRR1542404 = "Control", SRR1542405 = "Control",
+               SRR1542406 = "Drought_1h", SRR1542407 = "Drought_1h",
+               SRR1542408 = "Drought_6h", SRR1542409 = "Drought_6h",
+               SRR1542410 = "Heat_1h", SRR1542411 = "Heat_1h",
+               SRR1542412 = "Heat_6h", SRR1542413 = "Heat_6h",
+               SRR1542414 = "Drought_Heat_1h",SRR1542415 = "Drought_Heat_1h",
+               SRR1542416 = "Drought_Heat_6h", SRR1542417 = "Drought_Heat_6h")
+
+
+y <- data.frame(sample = sub("_.*", "", rownames(mat)),
+                ps = rownames(mat))
+
+y$treat <- factor(treat_map[y$sample])
+```
+
+## Total counts
+
+I calculated the total k-mer count for each pseudosample and visualized it by sample and treatment.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+total_counts <- rowSums(mat)
+variances <- apply(mat, 1, var)
+
+df_summary <- data.frame(Pseudosample = rownames(mat),
+                         Sample = sub("_.*", "", rownames(mat)),
+                         Total = total_counts,
+                         Variance = variances)
+df_summary$treat <- factor(treat_map[df_summary$Sample])
+
+ggplot(df_summary, aes(Sample, Total, color = treat, fill = treat)) +
+  geom_boxplot(alpha = 0.5) +
+  theme_light() +
+  labs(title = "Total k-mer Counts per Pseudosample", y = "Total Counts") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set2")
+```
+
+> Most treatments behaved nicely, showing relatively consistent totals across replicates. Then came control sample `SRR1542404`, with noticeably higher counts and more variability than anyone asked for. This could be due to differences in sequencing depth or pre-processing hiccups. The good news: no systematic bias was observed across the remaining samples, so the pipeline (mostly) survived its first test.
+
+## Variance
+
+To evaluate within treatment consistency, I looked at the variance of k-mer counts per pseudosample and visualized it by treatment and replicate.
+
+```{r}
+df_summary$rep <- factor(c(rep(1, 100), rep(2,100)))
+
+ggplot(df_summary, aes(x = Variance, color = rep, fill = rep)) +
+  geom_density(alpha = 0.5) +
+  theme_light() +
+  labs(title = "Density of Variance per Treatment", x = "Variance") +
+  scale_fill_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set2") +
+  theme(legend.title = element_blank()) +
+  facet_wrap(~treat, scales = 'free')
+```
+
+> Overall, `Drought_1h`, `Drought_Heat_1h`, and `Heat_1h` showed small differences between replicates. This could be due to real biological variation or just some noise from sequencing. The control group had higher variation again, which makes sense because it also had more total reads.
+
+## PCA
+
+```{r}
+library(plotly)
+pca <- prcomp(mat, center = TRUE, scale. = TRUE)
+pca_df <- as.data.frame(pca$x[, 1:3])
+pca_df$treat <- y$treat
+#head(pca_df)
+
+plot_ly(pca_df,
+        x = ~PC1, y = ~PC2, z = ~PC3, 
+        color = ~treat, 
+        colors = "Set2",
+        type = "scatter3d", 
+        mode = "markers") %>%
+  layout(title = "PCA: First 3 Components")
+```
+
+> The first three principal components explained… less than 1% of the variance. The PCA plot was essentially an abstract painting with no clear separation between treatment groups, no clusters, just ~vibes~. This suggests that variation is spread thinly across a high number of dimensions and that PCA, while still a classic, isn’t going to solve this mystery alone. 
+
+## t-SNE
+
+```{r}
+library(Rtsne)
+tsne_res <- Rtsne(mat, dims = 2, perplexity = 5, verbose = TRUE, max_iter = 1000)
+tsne_res_df <- as.data.frame(tsne_res$Y)
+tsne_res_df$treat <- y$treat
+
+plot_ly(tsne_res_df, 
+        x = ~V1, y = ~V2, 
+        color = ~treat, 
+        colors = "Set2", 
+        type = "scatter", 
+        mode = "markers") 
+```   
+
+> Unlike PCA, t-SNE actually did something useful. It revealed structured groupings among treatments, with some overlap but still kept a bit of internal structure.
+>
+> Overall, the t-SNE results suggest that the k-mer-based representation does capture biologically meaningful differences between treatments, enough to justify moving forward with classification models.

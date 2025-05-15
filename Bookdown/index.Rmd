@@ -1,0 +1,70 @@
+--- 
+title: "AGRO 920 - Final Project"
+author: "Gabriela Romero Campos"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib, packages.bib]
+# url: your book url like https://bookdown.org/yihui/bookdown
+# cover-image: path to the social sharing image like images/cover.jpg
+description: |
+  This report covers all classes from PLPTH 820 course.
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+output:
+  bookdown::gitbook:
+    css: style.css
+---
+
+# About
+
+This project was developed as part of the AGRO 920 – Predictive Modeling for Plant Breeding course at Kansas State University. The goal wasn’t to reinvent the wheel, but to show that I can work with complex biological data and apply machine learning models in a meaningful way. In short: build a working pipeline, survive the process, and (hopefully) get useful results.
+
+The project combines plant genomics, transcriptomics, and predictive modeling to find patterns in RNA-seq data related to abiotic stress in wheat (*Triticum aestivum*). Instead of using a reference genome, I followed a reference free approach: breaking raw reads into k-mers and using them directly as input for machine learning models. It’s a bit unconventional, but sometimes going around the map is faster than sticking to the official roads.
+
+All scripts, data processing steps, and model evaluations are clearly documented — partly for reproducibility, and partly so future-me doesn’t hate past-me when trying to understand what I did.
+
+The raw data and intermediate files are stored in the **AGRO920 folder of my Beocat user directory**. If you'd like access, feel free to ask, I’ll gladly give permission. The `results` and `scripts` folders are also available on [my GitHub](https://github.com/GRCampo/AGRO920_FinalProject.git) for anyone interested in the pipeline or plots without digging through a cluster.
+
+## Data
+
+The dataset used in this project comes from [Liu et al. (2015)](https://doi.org/10.1186/s12870-015-0511-8), a study that investigated transcriptional responses of wheat under drought (DS), heat (HS), and combined heat and drought (HD) stress. The experiment used the TAM 107 cultivar, sampled at two time points (1h and 6h after stress onset), and focused on leaf tissue, where most of the drama tends to happen under stress. In total, 14 samples were sequenced, each with replicates, producing about 900 million 100-bp paired-end reads via the Illumina platform. A small and quiet dataset (~contains irony).
+
+For this project, the raw RNA-seq reads were downloaded from the NCBI SRA and processed through a reference-free, k-mer-based pipeline that is equal parts practical and a little bit original. The steps:
+
+- Quality checks were performed with **FastQC**, **MultiQC**, and **MarkDuplicates**.
+- Reads were converted to FASTA and split into pseudo-samples (**100 files per sample**) to simulate replicates and make downstream modeling less of a statistical nightmare.
+- **Jellyfish** (v2.3.0) was used to count k-mers with a length of 41.
+- The resulting k-mer matrix was filtered by abundance (count > 10), variability (top 25% CV), and redundancy (95% similarity via CD-HIT), leaving behind a lean set of 13,490 representative k-mers.
+
+Then, I used this k-mer matrix for:
+
+- **Exploratory analysis** with PCA and t-SNE, to see whether the pseudo-samples wanted to behave and cluster by treatment.
+- Supervised modeling using **Random Forest**, to classify stress conditions and exposure times — or at least try to.
+- Feature selection, to highlight the most informative k-mers.
+
+## Project Overview
+
+### Objective
+
+This project aims to identify k-mers associated with specific abiotic stress conditions and time points in wheat using a machine learning framework. The central hypothesis? That raw RNA-seq reads contain hidden sequence patterns. Patterns that can be detected at the k-mer level,  which reflect how the plant is responding to heat, drought, or the lovely combination of both.
+
+To test this, I built a reference-free pipeline that strings together preprocessing, pseudo-sample generation, k-mer extraction, dimensionality reduction, and supervised classification. The goal wasn’t just to classify samples correctly (though that’s nice), but to use the models to highlight the most informative k-mers — those little fragments of sequence that might actually tell us something biologically interesting.
+
+### Why k-mers?
+
+Instead of relying on annotated genes or transcript quantification, this pipeline starts from scratch, literally from the raw reads. K-mer counting skips the need for a reference genome, which is great news if your species of interest doesn’t have one (or has one that’s... questionable). It also gives you the chance to capture signal from other places as non-coding RNAs, or whatever else the reference might have missed or ignored. It’s messy, but in a good way.
+
+### Why pseudo-samples (PS)?
+
+The original dataset has only two biological replicates per treatment, which is a great work but, let's be honest, not ideal for training machine learning models. To work around this, I created pseudosamples (PS): smaller subsets of reads, randomly split from the originals while keeping the paired-end structure intact.
+
+Are they true biological replicates? No. Do they help the model see more of the internal variation without cheating? Yes, if you split your training and testing sets carefully (which I did). **It’s not perfect**, but it’s better than pretending two replicates are enough.
+
+### Why machine learning?
+
+Because this project lives at the intersection of “too many variables” and “not enough samples,” and that’s exactly the kind of problem machine learning is designed for.
+
+Classical tools like edgeR or DESeq2 are great when you want to find single DEGs that behave nicely. But ML models can look at thousands of features at once and pick up more subtle or multivariate signal, the kind you’d never spot with p-values alone. Here, the models are used not just to classify but to learn and prioritize which k-mers matter most, opening the door to future work in stress diagnostics and functional genomics.
+
+

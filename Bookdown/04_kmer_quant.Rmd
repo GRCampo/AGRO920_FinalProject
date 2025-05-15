@@ -1,0 +1,556 @@
+---
+title: "K-mer Extraction and Filtering"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# K-mer Extraction and Filtering
+
+To quantify sequence patterns across pseudo-samples without depending on a reference genome, I extracted 41-mers directly from raw reads using Jellyfish. This section outlines the full process of counting, filtering, and condensing millions of k-mers into something the models could actually handle.
+
+## K-mer Counting with Jellyfish
+
+Jellyfish v2.3.0 was used to count canonical **41-mers** from each pseudosample FASTA file. To avoid getting distracted by sequencing noise, only k-mers with frequency >= 10 were kept. The pipeline used a two-pass system: A filter was used to identify promising k-mer candidates, followed by a targeted recount of those that appeared frequently.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=kmer_count
+#SBATCH --time=7-00:00:00
+#SBATCH --array=0-1399%100   
+#SBATCH --mem=25G
+#SBATCH --cpus-per-task=10
+
+module load Jellyfish/2.3.0-GCC-11.3.0
+
+echo "Job started on $(date)"
+
+# Step 1: Generate a list of all pseudo-fasta files
+if [ "$SLURM_ARRAY_TASK_ID" -eq 0 ]; then
+  echo "Generating list of pseudo-fasta files..."
+  find ps_fasta -type f -name "*_ps*.fasta" | sort > all_pseudo_fastas.list
+fi
+
+sleep 10
+
+# Step 2: file path 
+FASTA=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" all_pseudo_fastas.list)
+BASENAME=$(basename "$FASTA" .fasta)
+DIRNAME=$(dirname "$FASTA")
+
+echo "Processing: $FASTA"
+
+# Step 3: Define output file paths
+BCFILE="${DIRNAME}/${BASENAME}.bc"
+JFFILE="${DIRNAME}/${BASENAME}.jf"
+TSVFILE="${DIRNAME}/${BASENAME}_k41.tsv"
+
+# Step 4: First pass - Bloom Counter
+jellyfish bc -m 41 -s 300M -t 10 -o "$BCFILE" "$FASTA"
+
+# Step 5: Second pass - count only k-mers with frequency >= 2
+jellyfish count -m 41 -s 300M -t 10 --bc "$BCFILE" -C -o "$JFFILE" "$FASTA"
+
+# Step 6: TSV format -> transformer
+jellyfish dump -c "$JFFILE" > "$TSVFILE"
+
+echo "Finished: $TSVFILE"
+
+# Step 7: Rovome temporary Jellyfish files
+rm -f "$BCFILE" "$JFFILE"
+echo "Temporary files removed: $BCFILE and $JFFILE"
+```
+
+**Output:** One `.tsv` file per pseudosample containing k-mer sequences and their counts. Temporary `.jf` and `.bc` files were deleted to conserve space. The `.tsv` were compressed into the file `count.tar.xz`.
+
+## Pseudosample Merging by Treatment
+
+Given the total number of pseudosamples, processing them all at once wasn’t an option (R crashed several times, no matter how much RAM I added) in real time. So, I merged count files in batches of 10 per treatment using `csvtk`, generating manageable chunks like `SRR1542404_00-09.tsv`.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=merge_kmers
+#SBATCH --array=0-13
+#SBATCH --mem=200G
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=15
+
+# List of treatment IDs (folders)
+TREAT_IDS=(SRR1542404 SRR1542405 SRR1542406 SRR1542407 SRR1542408 SRR1542409 SRR1542410 SRR1542411 SRR1542412 SRR1542413 SRR1542414 SRR1542415 SRR1542416 SRR1542417)
+
+
+TREAT_ID=${TREAT_IDS[$SLURM_ARRAY_TASK_ID]}
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Treatment start: $TREAT_ID"
+
+cd $TREAT_ID
+
+# Step 1: Fix TSV files
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Fixing TSV files."
+for f in *.tsv; do
+  #insert header before the original first line
+  sed -i '1s/^/kmer\tcount\n/' "$f"
+  #After line 2, replace first space with tab
+  sed -i '2,$s/ /\t/' "$f"
+done
+
+# Step 2: Merge all pseudo‐samples ps00…ps99 into a single matrix
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 00-09."
+~/Tools_Scripts/csvtk join *_ps{00..09}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_00-09.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 10-19."
+~/Tools_Scripts/csvtk join *_ps{10..19}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_10-19.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 20-29."
+~/Tools_Scripts/csvtk join *_ps{20..29}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_20-29.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 30-39."
+~/Tools_Scripts/csvtk join *_ps{30..39}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_30-39.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 40-49."
+~/Tools_Scripts/csvtk join *_ps{40..49}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_40-49.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 50-59."
+~/Tools_Scripts/csvtk join *_ps{50..59}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_50-59.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 60-69."
+~/Tools_Scripts/csvtk join *_ps{60..69}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_60-69.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 70-79."
+~/Tools_Scripts/csvtk join *_ps{70..79}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_70-79.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 80-89."
+~/Tools_Scripts/csvtk join *_ps{80..89}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_80-89.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 90-99."
+~/Tools_Scripts/csvtk join *_ps{90..99}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_90-99.tsv
+
+# Done
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] $TREAT_ID completed."
+```
+
+> **Note:** Each treatment resulted in 10 merged files, stored as `TREAT_ID_00-09.tsv` to `TREAT_ID_90-99.tsv`.
+
+## Global Merging by Group
+
+Even after merging by treatment, the data was still too big for a single R session (or for any mortal RAM configuration under 300 GB). So, treatments were split into two groups, each processed independently. For each group, the 10 treatment files were combined into 10 final matrices named like `FINAL_group1_PART.tsv`.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=merge_kmers
+#SBATCH --array=0-9
+#SBATCH --mem=200G
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=15
+
+PARTS=(_00-09.tsv _10-19.tsv _20-29.tsv _30-39.tsv _40-49.tsv _50-59.tsv _60-69.tsv _70-79.tsv _80-89.tsv _90-99.tsv)
+PART=${PARTS[$SLURM_ARRAY_TASK_ID]}
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 1"
+~/Tools_Scripts/csvtk join "SRR1542404$PART" "SRR1542407$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 2"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542409$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 3"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542411$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 4"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542413$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 5"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542415$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 6"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542416$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+mv "final2$PART" "FINAL_group1$PART"
+
+echo "-----Group 2------"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 1"
+~/Tools_Scripts/csvtk join "SRR1542405$PART" "SRR1542406$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 2"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542408$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 3"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542410$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 4"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542412$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 5"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542414$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 6"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542417$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+mv "final2$PART" "FINAL_group2$PART"
+```
+
+**Output:** A total of 20 files (10 per group), later converted to `.rds` format for faster loading in R. The original `.tsv` files were deleted, and the `.rds` versions were bundled in `kmer_count.tar.xz`.
+
+## Aggregation and Total Count per K-mer
+
+Each final matrix was loaded in R, and total counts per k-mer were computed across all pseudosamples. A `.tsv` version of the totals was created for external filtering, while the intermediate `.rds` files were kept for sanity (and speed).
+
+> **Note:** All this was done via SLURM jobs, a necessary evil that saved me time.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=kmers
+#SBATCH --array=0-19
+#SBATCH --time=04:00:00
+#SBATCH --mem=50G
+#SBATCH --cpus-per-task=1
+
+module load R/4.2.1-foss-2022a
+
+FILES_LIST=($(ls FINAL_group*.tsv))
+FILE="${FILES_LIST[$SLURM_ARRAY_TASK_ID]}"
+
+R --no-save -q < editFiles1.R "$FILE"
+```
+
+- editFiles1.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+args <- commandArgs(trailingOnly = TRUE)
+print(args[1])
+
+path_files <- args[1]
+
+library(data.table)
+library(stringr)
+
+setwd('/bulk/eakhunov/grcampos/embeddings/')
+
+tmp_mat <- fread(paste0('/bulk/eakhunov/grcampos/embeddings/kmer_count/', path_files))
+colnames(tmp_mat)[-1] <- str_extract(colnames(tmp_mat)[-1], "SRR\\d+_ps\\d+")
+
+kmer_check <- data.frame(kmer = tmp_mat$kmer,
+                         count = rowSums(tmp_mat[, -1, with = FALSE]))
+
+name_base <- tools::file_path_sans_ext(basename(path_files))
+
+saveRDS(tmp_mat, file = paste0('/bulk/eakhunov/grcampos/embeddings/kmer_count/', name_base, '.rds'))
+write.table(kmer_check, file = paste0('/bulk/eakhunov/grcampos/embeddings/kmer_count/count', name_base, '.tsv'), quote = F, row.names = F, sep = '\t')
+
+print('Done!')
+```
+
+## Filtering kmers
+
+### Step 1: Abundance Threshold
+
+First, I filtered out k-mers with total count < 10, reducing the dataset from a dropping ~88 million k-mers to a more reasonable ~45 million. This required recombining all parts into a single matrix (a fun reminder that splitting things helps performance, but reuniting them is unavoidable in the end).
+
+Matrix rows were reordered to align across all files, for consistency across files.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=merge_count2
+#SBATCH --array=0
+#SBATCH --mem=200G
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=15
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 1"
+~/Tools_Scripts/csvtk join count_00-09.tsv count_10-19.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 2"
+~/Tools_Scripts/csvtk join FINAL.tsv count_20-39.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 3"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_30-39.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 4"
+~/Tools_Scripts/csvtk join FINAL.tsv count_40-49.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 5"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_50-59.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 6"
+~/Tools_Scripts/csvtk join FINAL.tsv count_60-69.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 7"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_70-79.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 8"
+~/Tools_Scripts/csvtk join FINAL.tsv count_80-89.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 9"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_90-99.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+mv FINAL.tsv kmer_count.tsv
+rm FINAL2.tsv
+```
+
+```{bash, eval=FALSE}
+module load R/4.2.1-foss-2022a
+
+sbatch --job-name=R --time=01-0:00:00 --mem=100G --nodes=1 --wrap="R --no-save -q < editFiles2.R"
+```
+
+- editFiles2.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+library(data.table)
+
+kmer_count <- fread('kmer_count/kmer_count.tsv') %>%
+  rename_with(~ str_extract(., "group[12](?:_\\d{2}-\\d{2})?"), -1) %>%
+  mutate(TOTAL = rowSums(across(-1))) %>%
+  filter(TOTAL >= 10) %>%
+  select(1, TOTAL) #45M
+
+saveRDS(as.vector(kmer_filterMin$kmer), file = 'kmer_count/kmer_filterMin.rds')
+```
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=kmers
+#SBATCH --array=0-19
+#SBATCH --time=04:00:00
+#SBATCH --mem=200G
+#SBATCH --cpus-per-task=1
+
+module load R/4.2.1-foss-2022a
+
+FILES_LIST=($(ls FINAL_group2*.rds))
+FILE="${FILES_LIST[$SLURM_ARRAY_TASK_ID]}"
+
+Rscript editFiles3.R "$FILE"
+```
+
+- editFiles3.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+args <- commandArgs(trailingOnly = TRUE)
+print(args[1])
+
+path_files <- args[1]
+
+library(data.table)
+library(stringr)
+library(tools)
+
+setwd('/bulk/eakhunov/grcampos/embeddings/')
+
+
+tmp_dt <- readRDS(paste0('kmer_count/', path_files))
+kmers <- readRDS('kmer_count/kmer_filterMin.rds')
+
+name_base <- file_path_sans_ext(basename(path_files))
+
+cat("Min filter\n")
+tmp_dt <- tmp_dt[kmer %in% kmers]
+
+cat("Missing kmers\n")
+missing_kmers <- setdiff(kmers, tmp_dt$kmer)
+
+if (length(missing_kmers) > 0) {
+  n_cols <- ncol(tmp_dt) - 1
+  tmp_missing <- data.table(kmer = missing_kmers,
+                            matrix(0, nrow = length(missing_kmers), ncol = n_cols))
+  setnames(tmp_missing, colnames(tmp_dt))
+  tmp_dt <- rbind(tmp_dt, tmp_missing)
+}
+gc()
+
+cat("Ordering kmers\n")
+tmp_dt <- tmp_dt[match(kmers, tmp_dt$kmer)]
+
+cat("Saving\n")
+saveRDS(tmp_dt, file = paste0('kmer_count/', name_base, '_filter_min.rds'))
+
+cat("Done!\n")
+```
+
+
+### Step 2: Coefficient of Variation (CV)
+
+Next, I wanted to keep only the most dynamic k-mers, so I calculated the coefficient of variation (CV) for each. This task was divided into ~4,000 chunks and submitted as SLURM jobs.
+
+> Runtime? 48 hours.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=chunk_cv
+#SBATCH --array=374-4505%100
+#SBATCH --time=2-00:00:00
+#SBATCH --mem=50G
+#SBATCH --cpus-per-task=1
+
+module load R/4.2.1-foss-2022a
+
+Rscript kmers_CV_byChunck.R $SLURM_ARRAY_TASK_ID
+```
+
+- kmers_CV_byChunck.R
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+args <- commandArgs(trailingOnly = TRUE)
+chunk_id <- as.integer(args[1])
+
+library(data.table)
+
+setwd('/bulk/eakhunov/grcampos/embeddings/')
+
+files <- list.files("kmer_count/", pattern = "_filter_min.rds$", full.names = TRUE)
+chunk_size <- 10000
+n_total <- nrow(readRDS(files[1]))
+
+rowSds <- function(x) sqrt(rowMeans((x - rowMeans(x))^2))
+
+line_start <- (chunk_id - 1) * chunk_size + 1
+line_end <- min(chunk_id * chunk_size, n_total)
+
+cat("Processing chunk", chunk_id, ":", line_start, "-", line_end, "\n")
+
+all_cols <- vector("list", length(files))
+kmer_ref <- NULL
+
+for (j in seq_along(files)) {
+  dt <- readRDS(files[j])[line_start:line_end]
+  if (j == 1) kmer_ref <- dt$kmer
+  all_cols[[j]] <- dt[, -1, with = FALSE]
+}
+
+mat <- do.call(cbind, all_cols)
+
+media <- rowMeans(mat)
+desvio <- rowSds(mat)
+cv <- desvio / media
+
+result <- data.table(kmer = kmer_ref, mean = media, sd = desvio, cv = cv)
+
+# saving
+out_path <- sprintf("kmer_count/chunks_cv/chunk_%04d.rds", chunk_id)
+dir.create("kmer_count/chunks_cv", showWarnings = FALSE)
+saveRDS(result, out_path)
+
+cat("Chunk", chunk_id, "saved to", out_path, "\n")
+```
+
+**Output:** All files are available in the folder `CVbyChunck.tar.xz`.
+
+After processing all chunks, results were combined and kmers in the **top 25%** of CV were retained.
+
+```{bash, eval=FALSE}
+module load R/4.2.1-foss-2022a
+
+sbatch --job-name=R --time=01-0:00:00 --mem=100G --nodes=1 --wrap="R --no-save -q < editFiles4.R"
+```
+
+- editFiles4.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+library(data.table)
+library(tidyverse)
+
+file_paths <- paste0('kmer_count/chunks_cv/', list.files('kmer_count/chunks_cv/'))
+
+kmer_cv <- lapply(file_paths, readRDS)
+kmer_cv <- do.call(rbind, kmer_cv)
+
+table(kmer_count$kmer %in% kmer_cv$kmer)
+
+kmer_metrics <- left_join(kmer_cv, kmer_count, by = "kmer")
+
+# top 25%
+fasta_lines <-  kmer_metrics %>%
+  filter(cv > quantile(cv, 0.75)) %>%
+  arrange(desc(cv), desc(TOTAL)) %>%
+  select(-mean, -sd)
+
+fasta_lines <- paste0(">kmer", seq_len(nrow(kmer_metrics)), "\n", kmer_metrics$kmer)
+
+write_lines(fasta_lines, "kmers_min_cv.fa")
+```
+
+> **Note:** The resulting file `kmers_min_cv.fa` contains the most variable and abundant k-mers for `cd-hit-est` clustering.
+
+### Step 3: Redundancy Removal with CD-HIT-EST
+
+Finally, to avoid feeding the models with 10 slightly different versions of the same sequence, I ran `CD-HIT-EST` with a **95% identity threshold**. Only one representative per cluster was kept.
+
+```{bash, eval=FALSE}
+module load CD-HIT/4.8.1-GCC-11.3.0
+
+sbatch --job-name=CdH --time=05:00:00 --mem=200G --ntasks-per-node=20 --nodes=1 --wrap="cd-hit-est -i kmers_min_cv.fa -o kmers_clustered.fa -c 0.95 -n 8 -T 20 -M 200000 -d 0"
+```
+
+**Output:** Clustering results and retained sequences are in the `cd-hit.tar.xz` folder. 
+
+```{bash, eval=FALSE}
+module load R/4.2.1-foss-2022a
+
+sbatch --job-name=R --time=01-0:00:00 --mem=100G --nodes=1 --wrap="R --no-save -q < editFiles5.R"
+```
+
+- editFiles5.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+library(data.table)
+library(tidyverse)
+library(Biostrings)
+
+cdhit <- readDNAStringSet("kmers_clustered.fa")
+seqs <- as.character(cdhit)
+head(seqs)
+length(seqs) 
+
+kmer_metrics <- filter(kmer_metrics, kmer %in% seqs) #4.5M
+head(kmer_metrics)
+hist(kmer_metrics$cv)
+
+# count matrices ----
+path_count <- list.files("kmer_count", pattern = "_filter_min.rds$", full.names = TRUE)
+
+count_clean <- data.table()
+
+for(i in seq_along(path_count)){ #4h
+  tmp <- readRDS(path_count[i]) %>% 
+    filter(kmer %in% seqs2) %>% 
+    arrange(factor(kmer, levels = seqs)) %>%
+    column_to_rownames(var = 'kmer')
+  
+  count_clean <- cbind(count_clean, tmp)
+}
+rownames(count_clean) <- seqs
+
+kmer_metrics_grouped <- kmer_metrics %>%
+  group_by(mean, sd, TOTAL, cv) %>%
+  mutate(group_id = cur_group_id()) %>%
+  ungroup() %>% 
+  as.data.frame()
+
+kmer_unique <- kmer_metrics_grouped[!duplicated(kmer_metrics_grouped$group_id), ]
+
+count_clean2 <- count_clean %>%
+  rownames_to_column("kmer") %>%           
+  filter(kmer %in% kmer_unique$kmer) %>%  
+  column_to_rownames("kmer")         
+
+count_clean2 <- log2(count_clean2 + 1)
+count_clean2 <- t(count_clean2)
+
+saveRDS(count_clean, 'results/count_clean.rds')
+saveRDS(kmer_metrics, 'results/kmer_metrics.rds')
+saveRDS(count_clean2, 'results/count_clean2.rds')
+```
+
+> All scripts used in this ~~straightforward~~ chain of events are available in the `scripts/` directory, for anyone brave (or curious) enough to follow the path.
+
+

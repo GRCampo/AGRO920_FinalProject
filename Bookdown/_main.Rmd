@@ -1,0 +1,1454 @@
+--- 
+title: "AGRO 920 - Final Project"
+author: "Gabriela Romero Campos"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib, packages.bib]
+# url: your book url like https://bookdown.org/yihui/bookdown
+# cover-image: path to the social sharing image like images/cover.jpg
+description: |
+  This report covers all classes from PLPTH 820 course.
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+output:
+  bookdown::gitbook:
+    css: style.css
+---
+
+# About
+
+This project was developed as part of the AGRO 920 – Predictive Modeling for Plant Breeding course at Kansas State University. The goal wasn’t to reinvent the wheel, but to show that I can work with complex biological data and apply machine learning models in a meaningful way. In short: build a working pipeline, survive the process, and (hopefully) get useful results.
+
+The project combines plant genomics, transcriptomics, and predictive modeling to find patterns in RNA-seq data related to abiotic stress in wheat (*Triticum aestivum*). Instead of using a reference genome, I followed a reference free approach: breaking raw reads into k-mers and using them directly as input for machine learning models. It’s a bit unconventional, but sometimes going around the map is faster than sticking to the official roads.
+
+All scripts, data processing steps, and model evaluations are clearly documented — partly for reproducibility, and partly so future-me doesn’t hate past-me when trying to understand what I did.
+
+The raw data and intermediate files are stored in the **AGRO920 folder of my Beocat user directory**. If you'd like access, feel free to ask, I’ll gladly give permission. The `results` and `scripts` folders are also available on [my GitHub](https://github.com/GRCampo/AGRO920_FinalProject.git) for anyone interested in the pipeline or plots without digging through a cluster.
+
+## Data
+
+The dataset used in this project comes from [Liu et al. (2015)](https://doi.org/10.1186/s12870-015-0511-8), a study that investigated transcriptional responses of wheat under drought (DS), heat (HS), and combined heat and drought (HD) stress. The experiment used the TAM 107 cultivar, sampled at two time points (1h and 6h after stress onset), and focused on leaf tissue, where most of the drama tends to happen under stress. In total, 14 samples were sequenced, each with replicates, producing about 900 million 100-bp paired-end reads via the Illumina platform. A small and quiet dataset (~contains irony).
+
+For this project, the raw RNA-seq reads were downloaded from the NCBI SRA and processed through a reference-free, k-mer-based pipeline that is equal parts practical and a little bit original. The steps:
+
+- Quality checks were performed with **FastQC**, **MultiQC**, and **MarkDuplicates**.
+- Reads were converted to FASTA and split into pseudo-samples (**100 files per sample**) to simulate replicates and make downstream modeling less of a statistical nightmare.
+- **Jellyfish** (v2.3.0) was used to count k-mers with a length of 41.
+- The resulting k-mer matrix was filtered by abundance (count > 10), variability (top 25% CV), and redundancy (95% similarity via CD-HIT), leaving behind a lean set of 13,490 representative k-mers.
+
+Then, I used this k-mer matrix for:
+
+- **Exploratory analysis** with PCA and t-SNE, to see whether the pseudo-samples wanted to behave and cluster by treatment.
+- Supervised modeling using **Random Forest**, to classify stress conditions and exposure times — or at least try to.
+- Feature selection, to highlight the most informative k-mers.
+
+## Project Overview
+
+### Objective
+
+This project aims to identify k-mers associated with specific abiotic stress conditions and time points in wheat using a machine learning framework. The central hypothesis? That raw RNA-seq reads contain hidden sequence patterns. Patterns that can be detected at the k-mer level,  which reflect how the plant is responding to heat, drought, or the lovely combination of both.
+
+To test this, I built a reference-free pipeline that strings together preprocessing, pseudo-sample generation, k-mer extraction, dimensionality reduction, and supervised classification. The goal wasn’t just to classify samples correctly (though that’s nice), but to use the models to highlight the most informative k-mers — those little fragments of sequence that might actually tell us something biologically interesting.
+
+### Why k-mers?
+
+Instead of relying on annotated genes or transcript quantification, this pipeline starts from scratch, literally from the raw reads. K-mer counting skips the need for a reference genome, which is great news if your species of interest doesn’t have one (or has one that’s... questionable). It also gives you the chance to capture signal from other places as non-coding RNAs, or whatever else the reference might have missed or ignored. It’s messy, but in a good way.
+
+### Why pseudo-samples (PS)?
+
+The original dataset has only two biological replicates per treatment, which is a great work but, let's be honest, not ideal for training machine learning models. To work around this, I created pseudosamples (PS): smaller subsets of reads, randomly split from the originals while keeping the paired-end structure intact.
+
+Are they true biological replicates? No. Do they help the model see more of the internal variation without cheating? Yes, if you split your training and testing sets carefully (which I did). **It’s not perfect**, but it’s better than pretending two replicates are enough.
+
+### Why machine learning?
+
+Because this project lives at the intersection of “too many variables” and “not enough samples,” and that’s exactly the kind of problem machine learning is designed for.
+
+Classical tools like edgeR or DESeq2 are great when you want to find single DEGs that behave nicely. But ML models can look at thousands of features at once and pick up more subtle or multivariate signal, the kind you’d never spot with p-values alone. Here, the models are used not just to classify but to learn and prioritize which k-mers matter most, opening the door to future work in stress diagnostics and functional genomics.
+
+
+
+<!--chapter:end:index.Rmd-->
+
+---
+title: "Data Acquisition"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+# Data Acquisition
+
+## Download
+
+The dataset used in this study was generated by Liu et al. (2015) and is publicly available at the NCBI Sequence Read Archive (SRA) under the BioProject accession [PRJNA271170](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA271170). 
+
+To download the 14 paired-end RNA-seq samples, I used `fasterq-dump` from the SRA Toolkit, wrapped in a SLURM job array to parallelize the process (because downloading 190 GB on a single core sounded like a terrible idea).
+
+Each file was compressed after download to save space.
+
+**Total size**: approximately **190 GB** (uncompressed).  
+**Output**: 28 gzipped FASTQ files (`*_1.fastq.gz` and `*_2.fastq.gz` for each sample).
+
+> **Note:** The download script is stored in the `scripts` directory as `01_runDownload.sbatch`.
+
+```{bash, eval=FALSE}
+#!/bin/bash -l
+#SBATCH --job-name=data920_download
+#SBATCH --time=1-00:00:00
+#SBATCH --mem=50G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=10
+#SBATCH --array=1-14
+
+RUNS=("SRR1542404" "SRR1542405" "SRR1542406" "SRR1542407" "SRR1542408" "SRR1542409" "SRR1542410" "SRR1542411" "SRR1542412" "SRR1542413" "SRR1542414" "SRR1542415" "SRR1542416" "SRR1542417")
+
+RUN=${RUNS[$SLURM_ARRAY_TASK_ID-1]}
+
+echo "Processing $RUN Job Array ID: $SLURM_ARRAY_TASK_ID"
+
+fasterq-dump --split-files --threads 10 $RUN
+
+gzip "${RUN}_1.fastq"
+gzip "${RUN}_2.fastq"
+
+echo "$RUN done!"
+```
+
+<!--chapter:end:01_Data_Acquisition.Rmd-->
+
+---
+title: "Quality Control"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# Quality Control 
+
+Although this RNA-seq dataset came from a published study, it didn’t include any quality control metrics. So, I ran an independent QC check to make sure the reads was well. This included `FastQC`, `MultiQC`, and duplicate removal with `MarkDuplicates` from the Picard toolkit (all with the goal of reducing technical noise and *preserving my sanity* for the analyses ahead).
+
+## FastQC and MultiQC
+
+Each paired-end FASTQ file was evaluated using FastQC (v0.12.1) via SLURM array jobs. After that, I used MultiQC to bring everything together into one readable summary.
+
+```{bash, eval=FALSE}
+#!/bin/bash -l
+#SBATCH --job-name=data920_fastqc
+#SBATCH --time=02:00:00
+#SBATCH --mem=50G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=10
+#SBATCH --array=1-14
+
+# Load Fastqc 
+module load FastQC/0.12.1-Java-11
+
+# finding R1 and R2 files
+FASTQ_FILES_R1=($(ls /homes/grcampos/AGRO920/data/*_1.fastq.gz))
+FASTQ_FILES_R2=($(ls /homes/grcampos/AGRO920/data/*_2.fastq.gz))
+
+# One file per array index
+FILE_R1=${FASTQ_FILES_R1[$SLURM_ARRAY_TASK_ID - 1]} #bash arrays starts with 0
+FILE_R2=${FASTQ_FILES_R2[$SLURM_ARRAY_TASK_ID - 1]}
+
+# Running Fatsqc
+echo "Processing $FILE_R1 and $FILE_R2"
+fastqc -t 10 -o /homes/grcampos/AGRO920/fastqc_reports "$FILE_R1" "$FILE_R2"
+```
+
+```{bash, eval=FALSE}
+module load MultiQC/1.14-foss-2022a
+
+sbatch --job-name=mqc920 --time=02:00:00 --mem=10G --nodes=1 --wrap="multiqc /bulk/eakhunov/grcampos/embeddings/fastqc_reports -o /bulk/eakhunov/grcampos/embeddings/fastqc_reports"
+```
+
+**Output:** All FastQC and MultiQC reports are saved in the `fastqc_reports/` directory.
+
+[Click here to open the MultiQC report](files/multiqc_report.html){target="_blank"}
+
+## Duplicate Removal with MarkDuplicates
+
+Next, I addressed the possibility of overrepresented sequences, which could skew k-mer frequencies. Using Picard’s MarkDuplicates, I converted the FASTQ files to BAM, marked duplicates, converted them back to deduplicated FASTQ files, and cleaned up all the temporary BAMs to avoid filling up the server (again).
+
+```{bash, eval=FALSE}
+#!/bin/bash -l
+#SBATCH --job-name=data920_markD
+#SBATCH --time=4-00:00:00
+#SBATCH --mem=50G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=10
+#SBATCH --array=1-14
+
+module load picard/2.25.1-Java-11
+
+#  List of paired-end FASTQ files
+FASTQ_FILES_R1=($(ls data/*_1.fastq.gz))
+FASTQ_FILES_R2=($(ls data/*_2.fastq.gz))
+
+# One file per array index
+FILE_R1=${FASTQ_FILES_R1[$SLURM_ARRAY_TASK_ID - 1]}
+FILE_R2=${FASTQ_FILES_R2[$SLURM_ARRAY_TASK_ID - 1]}
+SAMPLE_NAME=$(basename "$FILE_R1" | sed 's/_1.fastq.gz//')
+
+echo "Processing sample: $SAMPLE_NAME"
+java -jar $EBROOTPICARD/picard.jar FastqToSam -F1="$FILE_R1" -F2="$FILE_R2" O="bam_files/${SAMPLE_NAME}_unaligned.bam" -SM="$SAMPLE_NAME"
+echo "FASTQ to BAM completed for $SAMPLE_NAME"
+
+# Remove duplicates with MarkDuplicates
+java -jar $EBROOTPICARD/picard.jar MarkDuplicates I="bam_files/${SAMPLE_NAME}_unaligned.bam" O="bam_files/${SAMPLE_NAME}_deduplicated.bam" M="bam_files/${SAMPLE_NAME}_duplicate_metrics.txt" REMOVE_DUPLICATES=true VALIDATION_STRINGENCY=LENIENT #Lenient: Display warnings but will continue processing even with minor errors.
+echo "MarkDuplicates completed for $SAMPLE_NAME"
+
+# Convert BAM back to FASTQ
+java -jar $EBROOTPICARD/picard.jar SamToFastq I="bam_files/${SAMPLE_NAME}_deduplicated.bam" F="fastq_filtered/${SAMPLE_NAME}_R1_clean.fastq.gz" F2="/fastq_filtered/${SAMPLE_NAME}_R2_clean.fastq.gz"
+echo "BAM to FASTQ completed for $SAMPLE_NAME"
+
+# Remove BAM files
+rm "bam_files/${SAMPLE_NAME}_unaligned.bam"
+rm "bam_files/${SAMPLE_NAME}_deduplicated.bam"
+
+echo "Processing completed for $SAMPLE_NAME!"
+```
+
+**Output:** All and duplication metrics (`*_duplicate_metrics.txt`) were saved to the `bam_files/` directory. The intermediate BAM files were removed to save memory.
+
+No major PCR duplication was observed. According to Picard, most samples had zero or negligible duplicated reads, meaning the original RNA-seq libraries were solid. 
+
+> Note: All scripts used in this section are stored in the `scripts/` directory as `02_runFastqc.sbatch`, and `03_runDeduplication.sbatch`.
+
+<!--chapter:end:02_Quality_Control.Rmd-->
+
+---
+title: "Pseudosamples from Raw Reads"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# Pseudosamples from Raw Reads
+
+The original dataset included only two biological replicates per treatment, which is definitely not enough for training machine learning models. To make the most of the data, I implemented a pseudosample strategy: **splitting each sample into 100 non-overlapping subsets while keeping the paired-end structure intact**. These pseudosamples aren’t biologically independent, but they allow the model to “see” more of the internal structure and variability while still respecting the original replicate boundaries during validation.
+
+## Merge Paired-end Reads into a Single FASTA
+
+Before splitting, forward and reverse reads were merged into a single interleaved FASTA file. This made downstream processing cleaner and kept both ends of each read together.
+
+```{bash, eval=FALSE}
+#!/bin/bash -l
+#SBATCH --job-name=data920
+#SBATCH --time=4-00:00:00
+#SBATCH --mem=50G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --array=1-14
+
+FASTQ_LIST=($(ls ./fasta_files/*_1.fasta))
+FASTQ1=${FASTQ_LIST[$SLURM_ARRAY_TASK_ID - 1]}
+FASTQ2=$(echo $FASTQ1 | sed 's/_1.fasta/_2.fasta/')  
+OUTPUT="$(basename "$FASTQ1" | sed 's/_1.fasta/_merged.fasta/')"
+
+cat "$FASTQ1" "$FASTQ2" > "$OUTPUT"
+
+echo "Done for $FASTQ1 e $FASTQ2!"
+```
+
+## Split into Pseudosamples
+
+Each merged FASTA file was then split into 100 pseudosamples in a seven-step routine that’s part bash wizardry, part bioinformatics therapy:
+
+
+- **Step 1: Extract unique base read IDs**  
+
+Pulled read IDs from the merged FASTA and removed `/1` and `/2` suffixes to match up read pairs. The goal: treat each pair as a single unit.
+
+- **Step 2: Shuffle**  
+
+Shuffled the read ID list to keep things unbiased.
+
+- **Step 3: Split into 100 pseudo-ID files** 
+
+Divided the shuffled list into 100 chunks. Each one would become a pseudosample.
+
+- **Step 4: Generate paired-end ID files**  
+
+Reattached the `/1` and `/2` to make sure paired reads were preserved. 
+
+- **Step 5: Create new pseudo-FASTA files**  
+
+Filtered the original merged FASTA to extract only the reads corresponding to each pseudo-ID file. **Result**: one FASTA per pseudosample.
+
+- **Step 6: Create summary file**  
+
+For each original sample, a table was created listing how many reads ended up in each pseudosample and what their IDs were. Future-me says thanks.
+
+- **Step 7: Clean up intermediate files**  
+
+Deleted the temporary ID files. They served their purpose.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=pseudo_split
+#SBATCH --time=1-00:00:00
+#SBATCH --array=0-13
+#SBATCH --mem=25G
+#SBATCH --cpus-per-task=1
+
+echo "Job started on $(date)"
+FASTA_LIST=($(ls fasta_files/*_merged.fasta))
+FASTA="${FASTA_LIST[$SLURM_ARRAY_TASK_ID]}"
+BASENAME=$(basename "$FASTA" _merged.fasta)
+
+echo "Processing: $BASENAME"
+mkdir -p ps_fasta/${BASENAME}/ids
+
+# Step 1: Extract unique base read IDs
+echo "Extracting read IDs..."
+grep ">" "$FASTA" | sed 's/>//g' | sed 's/\/[12]$//' | sort -u > ps_fasta/${BASENAME}/ids/${BASENAME}_ID.txt
+
+# Step 2: Shuffle
+echo "Shuffling IDs..."
+shuf ps_fasta/${BASENAME}/ids/${BASENAME}_ID.txt > ps_fasta/${BASENAME}/ids/${BASENAME}_shufID.txt
+
+# Step 3: Split into 100 pseudo-ID files
+echo "Splitting into 100 pseudo-ID files..."
+total=$(wc -l < ps_fasta/${BASENAME}/ids/${BASENAME}_shufID.txt)
+lines_per_file=$(( (total + 99) / 100 ))
+
+split -l $lines_per_file -d -a 2 ps_fasta/${BASENAME}/ids/${BASENAME}_shufID.txt ps_fasta/${BASENAME}/ids/pseudo_
+
+# Step 4: Generate paired-end ID files
+echo "Creating paired-end ID files..."
+for f in ps_fasta/${BASENAME}/ids/pseudo_*; do
+    awk '{print $0"/1\n"$0"/2"}' "$f" > "${f}.txt"
+done
+
+# Step 5: Create new pseudo-fasta files
+echo "Generating pseudo-fasta files..."
+for i in $(seq -w 0 99); do
+    seqkit grep -f ps_fasta/${BASENAME}/ids/pseudo_${i}.txt "$FASTA" -o ps_fasta/${BASENAME}/${BASENAME}_ps${i}.fasta
+    echo "${BASENAME}_ps${i}.fasta done."
+done
+
+# Step 6: Create summary file
+echo "Creating summary..."
+SUMMARY_FILE="ps_fasta/${BASENAME}/pseudo_summary.txt"
+> "$SUMMARY_FILE"
+
+for f in ps_fasta/${BASENAME}/ids/pseudo_*; do
+    IDFILE=$(basename "$f")
+    GROUP="${IDFILE##*_}"
+    GROUP="${GROUP/.txt/}"
+
+    clean_ids=$(awk -F'/' '{print $1}' "$f" | sort -u)
+    count=$(echo "$clean_ids" | wc -l)
+    ids_line=$(echo "$clean_ids" | paste -sd "," -)
+
+    echo "> pseudo_${GROUP} (${count} reads)" >> "$SUMMARY_FILE"
+    echo "$ids_line" >> "$SUMMARY_FILE"
+done
+
+# Step 7: Clean up intermediate pseudo ID files
+echo "Cleaning up intermediate ID files..."
+rm ps_fasta/${BASENAME}/ids/pseudo_*
+
+echo "All pseudo-samples for $BASENAME created successfully on $(date)"
+```
+
+In total, this produced 1,400 pseudosamples (14 original samples $\times$ 100 splits), which were then used as input for k-mer decomposition and model training in the next phases.
+
+> **Note:** To keep memory usage under control, all pseudosample FASTA files and summary tables were compressed into `pseudoFastas.tar.xz`. Unpack only if you're ready.
+>
+> The scripts used to run this whole routine are in the `scripts/` directory.
+
+<!--chapter:end:03_Pseudosamples.Rmd-->
+
+---
+title: "K-mer Extraction and Filtering"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# K-mer Extraction and Filtering
+
+To quantify sequence patterns across pseudo-samples without depending on a reference genome, I extracted 41-mers directly from raw reads using Jellyfish. This section outlines the full process of counting, filtering, and condensing millions of k-mers into something the models could actually handle.
+
+## K-mer Counting with Jellyfish
+
+Jellyfish v2.3.0 was used to count canonical **41-mers** from each pseudosample FASTA file. To avoid getting distracted by sequencing noise, only k-mers with frequency >= 10 were kept. The pipeline used a two-pass system: A filter was used to identify promising k-mer candidates, followed by a targeted recount of those that appeared frequently.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=kmer_count
+#SBATCH --time=7-00:00:00
+#SBATCH --array=0-1399%100   
+#SBATCH --mem=25G
+#SBATCH --cpus-per-task=10
+
+module load Jellyfish/2.3.0-GCC-11.3.0
+
+echo "Job started on $(date)"
+
+# Step 1: Generate a list of all pseudo-fasta files
+if [ "$SLURM_ARRAY_TASK_ID" -eq 0 ]; then
+  echo "Generating list of pseudo-fasta files..."
+  find ps_fasta -type f -name "*_ps*.fasta" | sort > all_pseudo_fastas.list
+fi
+
+sleep 10
+
+# Step 2: file path 
+FASTA=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" all_pseudo_fastas.list)
+BASENAME=$(basename "$FASTA" .fasta)
+DIRNAME=$(dirname "$FASTA")
+
+echo "Processing: $FASTA"
+
+# Step 3: Define output file paths
+BCFILE="${DIRNAME}/${BASENAME}.bc"
+JFFILE="${DIRNAME}/${BASENAME}.jf"
+TSVFILE="${DIRNAME}/${BASENAME}_k41.tsv"
+
+# Step 4: First pass - Bloom Counter
+jellyfish bc -m 41 -s 300M -t 10 -o "$BCFILE" "$FASTA"
+
+# Step 5: Second pass - count only k-mers with frequency >= 2
+jellyfish count -m 41 -s 300M -t 10 --bc "$BCFILE" -C -o "$JFFILE" "$FASTA"
+
+# Step 6: TSV format -> transformer
+jellyfish dump -c "$JFFILE" > "$TSVFILE"
+
+echo "Finished: $TSVFILE"
+
+# Step 7: Rovome temporary Jellyfish files
+rm -f "$BCFILE" "$JFFILE"
+echo "Temporary files removed: $BCFILE and $JFFILE"
+```
+
+**Output:** One `.tsv` file per pseudosample containing k-mer sequences and their counts. Temporary `.jf` and `.bc` files were deleted to conserve space. The `.tsv` were compressed into the file `count.tar.xz`.
+
+## Pseudosample Merging by Treatment
+
+Given the total number of pseudosamples, processing them all at once wasn’t an option (R crashed several times, no matter how much RAM I added) in real time. So, I merged count files in batches of 10 per treatment using `csvtk`, generating manageable chunks like `SRR1542404_00-09.tsv`.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=merge_kmers
+#SBATCH --array=0-13
+#SBATCH --mem=200G
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=15
+
+# List of treatment IDs (folders)
+TREAT_IDS=(SRR1542404 SRR1542405 SRR1542406 SRR1542407 SRR1542408 SRR1542409 SRR1542410 SRR1542411 SRR1542412 SRR1542413 SRR1542414 SRR1542415 SRR1542416 SRR1542417)
+
+
+TREAT_ID=${TREAT_IDS[$SLURM_ARRAY_TASK_ID]}
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Treatment start: $TREAT_ID"
+
+cd $TREAT_ID
+
+# Step 1: Fix TSV files
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Fixing TSV files."
+for f in *.tsv; do
+  #insert header before the original first line
+  sed -i '1s/^/kmer\tcount\n/' "$f"
+  #After line 2, replace first space with tab
+  sed -i '2,$s/ /\t/' "$f"
+done
+
+# Step 2: Merge all pseudo‐samples ps00…ps99 into a single matrix
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 00-09."
+~/Tools_Scripts/csvtk join *_ps{00..09}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_00-09.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 10-19."
+~/Tools_Scripts/csvtk join *_ps{10..19}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_10-19.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 20-29."
+~/Tools_Scripts/csvtk join *_ps{20..29}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_20-29.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 30-39."
+~/Tools_Scripts/csvtk join *_ps{30..39}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_30-39.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 40-49."
+~/Tools_Scripts/csvtk join *_ps{40..49}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_40-49.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 50-59."
+~/Tools_Scripts/csvtk join *_ps{50..59}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_50-59.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 60-69."
+~/Tools_Scripts/csvtk join *_ps{60..69}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_60-69.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 70-79."
+~/Tools_Scripts/csvtk join *_ps{70..79}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_70-79.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 80-89."
+~/Tools_Scripts/csvtk join *_ps{80..89}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_80-89.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 90-99."
+~/Tools_Scripts/csvtk join *_ps{90..99}_k41.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > ../${TREAT_ID}_90-99.tsv
+
+# Done
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] $TREAT_ID completed."
+```
+
+> **Note:** Each treatment resulted in 10 merged files, stored as `TREAT_ID_00-09.tsv` to `TREAT_ID_90-99.tsv`.
+
+## Global Merging by Group
+
+Even after merging by treatment, the data was still too big for a single R session (or for any mortal RAM configuration under 300 GB). So, treatments were split into two groups, each processed independently. For each group, the 10 treatment files were combined into 10 final matrices named like `FINAL_group1_PART.tsv`.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=merge_kmers
+#SBATCH --array=0-9
+#SBATCH --mem=200G
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=15
+
+PARTS=(_00-09.tsv _10-19.tsv _20-29.tsv _30-39.tsv _40-49.tsv _50-59.tsv _60-69.tsv _70-79.tsv _80-89.tsv _90-99.tsv)
+PART=${PARTS[$SLURM_ARRAY_TASK_ID]}
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 1"
+~/Tools_Scripts/csvtk join "SRR1542404$PART" "SRR1542407$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 2"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542409$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 3"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542411$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 4"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542413$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 5"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542415$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 6"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542416$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+mv "final2$PART" "FINAL_group1$PART"
+
+echo "-----Group 2------"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 1"
+~/Tools_Scripts/csvtk join "SRR1542405$PART" "SRR1542406$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 2"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542408$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 3"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542410$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 4"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542412$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 5"
+~/Tools_Scripts/csvtk join "final2$PART" "SRR1542414$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final$PART"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 6"
+~/Tools_Scripts/csvtk join "final$PART" "SRR1542417$PART" -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > "final2$PART"
+
+mv "final2$PART" "FINAL_group2$PART"
+```
+
+**Output:** A total of 20 files (10 per group), later converted to `.rds` format for faster loading in R. The original `.tsv` files were deleted, and the `.rds` versions were bundled in `kmer_count.tar.xz`.
+
+## Aggregation and Total Count per K-mer
+
+Each final matrix was loaded in R, and total counts per k-mer were computed across all pseudosamples. A `.tsv` version of the totals was created for external filtering, while the intermediate `.rds` files were kept for sanity (and speed).
+
+> **Note:** All this was done via SLURM jobs, a necessary evil that saved me time.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=kmers
+#SBATCH --array=0-19
+#SBATCH --time=04:00:00
+#SBATCH --mem=50G
+#SBATCH --cpus-per-task=1
+
+module load R/4.2.1-foss-2022a
+
+FILES_LIST=($(ls FINAL_group*.tsv))
+FILE="${FILES_LIST[$SLURM_ARRAY_TASK_ID]}"
+
+R --no-save -q < editFiles1.R "$FILE"
+```
+
+- editFiles1.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+args <- commandArgs(trailingOnly = TRUE)
+print(args[1])
+
+path_files <- args[1]
+
+library(data.table)
+library(stringr)
+
+setwd('/bulk/eakhunov/grcampos/embeddings/')
+
+tmp_mat <- fread(paste0('/bulk/eakhunov/grcampos/embeddings/kmer_count/', path_files))
+colnames(tmp_mat)[-1] <- str_extract(colnames(tmp_mat)[-1], "SRR\\d+_ps\\d+")
+
+kmer_check <- data.frame(kmer = tmp_mat$kmer,
+                         count = rowSums(tmp_mat[, -1, with = FALSE]))
+
+name_base <- tools::file_path_sans_ext(basename(path_files))
+
+saveRDS(tmp_mat, file = paste0('/bulk/eakhunov/grcampos/embeddings/kmer_count/', name_base, '.rds'))
+write.table(kmer_check, file = paste0('/bulk/eakhunov/grcampos/embeddings/kmer_count/count', name_base, '.tsv'), quote = F, row.names = F, sep = '\t')
+
+print('Done!')
+```
+
+## Filtering kmers
+
+### Step 1: Abundance Threshold
+
+First, I filtered out k-mers with total count < 10, reducing the dataset from a dropping ~88 million k-mers to a more reasonable ~45 million. This required recombining all parts into a single matrix (a fun reminder that splitting things helps performance, but reuniting them is unavoidable in the end).
+
+Matrix rows were reordered to align across all files, for consistency across files.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=merge_count2
+#SBATCH --array=0
+#SBATCH --mem=200G
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=15
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 1"
+~/Tools_Scripts/csvtk join count_00-09.tsv count_10-19.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 2"
+~/Tools_Scripts/csvtk join FINAL.tsv count_20-39.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 3"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_30-39.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 4"
+~/Tools_Scripts/csvtk join FINAL.tsv count_40-49.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 5"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_50-59.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 6"
+~/Tools_Scripts/csvtk join FINAL.tsv count_60-69.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 7"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_70-79.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 8"
+~/Tools_Scripts/csvtk join FINAL.tsv count_80-89.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL2.tsv
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] step 9"
+~/Tools_Scripts/csvtk join FINAL2.tsv count_90-99.tsv -t -f 1 -j 15 --outer-join --na 0 --prefix-filename --prefix-trim-ext > FINAL.tsv
+
+mv FINAL.tsv kmer_count.tsv
+rm FINAL2.tsv
+```
+
+```{bash, eval=FALSE}
+module load R/4.2.1-foss-2022a
+
+sbatch --job-name=R --time=01-0:00:00 --mem=100G --nodes=1 --wrap="R --no-save -q < editFiles2.R"
+```
+
+- editFiles2.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+library(data.table)
+
+kmer_count <- fread('kmer_count/kmer_count.tsv') %>%
+  rename_with(~ str_extract(., "group[12](?:_\\d{2}-\\d{2})?"), -1) %>%
+  mutate(TOTAL = rowSums(across(-1))) %>%
+  filter(TOTAL >= 10) %>%
+  select(1, TOTAL) #45M
+
+saveRDS(as.vector(kmer_filterMin$kmer), file = 'kmer_count/kmer_filterMin.rds')
+```
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=kmers
+#SBATCH --array=0-19
+#SBATCH --time=04:00:00
+#SBATCH --mem=200G
+#SBATCH --cpus-per-task=1
+
+module load R/4.2.1-foss-2022a
+
+FILES_LIST=($(ls FINAL_group2*.rds))
+FILE="${FILES_LIST[$SLURM_ARRAY_TASK_ID]}"
+
+Rscript editFiles3.R "$FILE"
+```
+
+- editFiles3.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+args <- commandArgs(trailingOnly = TRUE)
+print(args[1])
+
+path_files <- args[1]
+
+library(data.table)
+library(stringr)
+library(tools)
+
+setwd('/bulk/eakhunov/grcampos/embeddings/')
+
+
+tmp_dt <- readRDS(paste0('kmer_count/', path_files))
+kmers <- readRDS('kmer_count/kmer_filterMin.rds')
+
+name_base <- file_path_sans_ext(basename(path_files))
+
+cat("Min filter\n")
+tmp_dt <- tmp_dt[kmer %in% kmers]
+
+cat("Missing kmers\n")
+missing_kmers <- setdiff(kmers, tmp_dt$kmer)
+
+if (length(missing_kmers) > 0) {
+  n_cols <- ncol(tmp_dt) - 1
+  tmp_missing <- data.table(kmer = missing_kmers,
+                            matrix(0, nrow = length(missing_kmers), ncol = n_cols))
+  setnames(tmp_missing, colnames(tmp_dt))
+  tmp_dt <- rbind(tmp_dt, tmp_missing)
+}
+gc()
+
+cat("Ordering kmers\n")
+tmp_dt <- tmp_dt[match(kmers, tmp_dt$kmer)]
+
+cat("Saving\n")
+saveRDS(tmp_dt, file = paste0('kmer_count/', name_base, '_filter_min.rds'))
+
+cat("Done!\n")
+```
+
+
+### Step 2: Coefficient of Variation (CV)
+
+Next, I wanted to keep only the most dynamic k-mers, so I calculated the coefficient of variation (CV) for each. This task was divided into ~4,000 chunks and submitted as SLURM jobs.
+
+> Runtime? 48 hours.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=chunk_cv
+#SBATCH --array=374-4505%100
+#SBATCH --time=2-00:00:00
+#SBATCH --mem=50G
+#SBATCH --cpus-per-task=1
+
+module load R/4.2.1-foss-2022a
+
+Rscript kmers_CV_byChunck.R $SLURM_ARRAY_TASK_ID
+```
+
+- kmers_CV_byChunck.R
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+args <- commandArgs(trailingOnly = TRUE)
+chunk_id <- as.integer(args[1])
+
+library(data.table)
+
+setwd('/bulk/eakhunov/grcampos/embeddings/')
+
+files <- list.files("kmer_count/", pattern = "_filter_min.rds$", full.names = TRUE)
+chunk_size <- 10000
+n_total <- nrow(readRDS(files[1]))
+
+rowSds <- function(x) sqrt(rowMeans((x - rowMeans(x))^2))
+
+line_start <- (chunk_id - 1) * chunk_size + 1
+line_end <- min(chunk_id * chunk_size, n_total)
+
+cat("Processing chunk", chunk_id, ":", line_start, "-", line_end, "\n")
+
+all_cols <- vector("list", length(files))
+kmer_ref <- NULL
+
+for (j in seq_along(files)) {
+  dt <- readRDS(files[j])[line_start:line_end]
+  if (j == 1) kmer_ref <- dt$kmer
+  all_cols[[j]] <- dt[, -1, with = FALSE]
+}
+
+mat <- do.call(cbind, all_cols)
+
+media <- rowMeans(mat)
+desvio <- rowSds(mat)
+cv <- desvio / media
+
+result <- data.table(kmer = kmer_ref, mean = media, sd = desvio, cv = cv)
+
+# saving
+out_path <- sprintf("kmer_count/chunks_cv/chunk_%04d.rds", chunk_id)
+dir.create("kmer_count/chunks_cv", showWarnings = FALSE)
+saveRDS(result, out_path)
+
+cat("Chunk", chunk_id, "saved to", out_path, "\n")
+```
+
+**Output:** All files are available in the folder `CVbyChunck.tar.xz`.
+
+After processing all chunks, results were combined and kmers in the **top 25%** of CV were retained.
+
+```{bash, eval=FALSE}
+module load R/4.2.1-foss-2022a
+
+sbatch --job-name=R --time=01-0:00:00 --mem=100G --nodes=1 --wrap="R --no-save -q < editFiles4.R"
+```
+
+- editFiles4.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+library(data.table)
+library(tidyverse)
+
+file_paths <- paste0('kmer_count/chunks_cv/', list.files('kmer_count/chunks_cv/'))
+
+kmer_cv <- lapply(file_paths, readRDS)
+kmer_cv <- do.call(rbind, kmer_cv)
+
+table(kmer_count$kmer %in% kmer_cv$kmer)
+
+kmer_metrics <- left_join(kmer_cv, kmer_count, by = "kmer")
+
+# top 25%
+fasta_lines <-  kmer_metrics %>%
+  filter(cv > quantile(cv, 0.75)) %>%
+  arrange(desc(cv), desc(TOTAL)) %>%
+  select(-mean, -sd)
+
+fasta_lines <- paste0(">kmer", seq_len(nrow(kmer_metrics)), "\n", kmer_metrics$kmer)
+
+write_lines(fasta_lines, "kmers_min_cv.fa")
+```
+
+> **Note:** The resulting file `kmers_min_cv.fa` contains the most variable and abundant k-mers for `cd-hit-est` clustering.
+
+### Step 3: Redundancy Removal with CD-HIT-EST
+
+Finally, to avoid feeding the models with 10 slightly different versions of the same sequence, I ran `CD-HIT-EST` with a **95% identity threshold**. Only one representative per cluster was kept.
+
+```{bash, eval=FALSE}
+module load CD-HIT/4.8.1-GCC-11.3.0
+
+sbatch --job-name=CdH --time=05:00:00 --mem=200G --ntasks-per-node=20 --nodes=1 --wrap="cd-hit-est -i kmers_min_cv.fa -o kmers_clustered.fa -c 0.95 -n 8 -T 20 -M 200000 -d 0"
+```
+
+**Output:** Clustering results and retained sequences are in the `cd-hit.tar.xz` folder. 
+
+```{bash, eval=FALSE}
+module load R/4.2.1-foss-2022a
+
+sbatch --job-name=R --time=01-0:00:00 --mem=100G --nodes=1 --wrap="R --no-save -q < editFiles5.R"
+```
+
+- editFiles5.R 
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+library(data.table)
+library(tidyverse)
+library(Biostrings)
+
+cdhit <- readDNAStringSet("kmers_clustered.fa")
+seqs <- as.character(cdhit)
+head(seqs)
+length(seqs) 
+
+kmer_metrics <- filter(kmer_metrics, kmer %in% seqs) #4.5M
+head(kmer_metrics)
+hist(kmer_metrics$cv)
+
+# count matrices ----
+path_count <- list.files("kmer_count", pattern = "_filter_min.rds$", full.names = TRUE)
+
+count_clean <- data.table()
+
+for(i in seq_along(path_count)){ #4h
+  tmp <- readRDS(path_count[i]) %>% 
+    filter(kmer %in% seqs2) %>% 
+    arrange(factor(kmer, levels = seqs)) %>%
+    column_to_rownames(var = 'kmer')
+  
+  count_clean <- cbind(count_clean, tmp)
+}
+rownames(count_clean) <- seqs
+
+kmer_metrics_grouped <- kmer_metrics %>%
+  group_by(mean, sd, TOTAL, cv) %>%
+  mutate(group_id = cur_group_id()) %>%
+  ungroup() %>% 
+  as.data.frame()
+
+kmer_unique <- kmer_metrics_grouped[!duplicated(kmer_metrics_grouped$group_id), ]
+
+count_clean2 <- count_clean %>%
+  rownames_to_column("kmer") %>%           
+  filter(kmer %in% kmer_unique$kmer) %>%  
+  column_to_rownames("kmer")         
+
+count_clean2 <- log2(count_clean2 + 1)
+count_clean2 <- t(count_clean2)
+
+saveRDS(count_clean, 'results/count_clean.rds')
+saveRDS(kmer_metrics, 'results/kmer_metrics.rds')
+saveRDS(count_clean2, 'results/count_clean2.rds')
+```
+
+> All scripts used in this ~~straightforward~~ chain of events are available in the `scripts/` directory, for anyone brave (or curious) enough to follow the path.
+
+
+
+<!--chapter:end:04_kmer_quant.Rmd-->
+
+---
+title: "Exploratory Analysis"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# Exploratory Analysis
+
+To explore the structure and quality of the filtered k-mer count matrix, I ran a few exploratory analyses to understand the structure and quality of the filtered k-mer count matrix. These steps help expose hidden patterns across pseudo-samples, flag weird samples, and check whether the data even has a chance of being separable in a lower-dimensional space.
+
+```{r message=FALSE, warning=FALSE}
+mat <- readRDS('~/AGRO920/results/count_clean2.rds')
+
+treat_map <- c(SRR1542404 = "Control", SRR1542405 = "Control",
+               SRR1542406 = "Drought_1h", SRR1542407 = "Drought_1h",
+               SRR1542408 = "Drought_6h", SRR1542409 = "Drought_6h",
+               SRR1542410 = "Heat_1h", SRR1542411 = "Heat_1h",
+               SRR1542412 = "Heat_6h", SRR1542413 = "Heat_6h",
+               SRR1542414 = "Drought_Heat_1h",SRR1542415 = "Drought_Heat_1h",
+               SRR1542416 = "Drought_Heat_6h", SRR1542417 = "Drought_Heat_6h")
+
+
+y <- data.frame(sample = sub("_.*", "", rownames(mat)),
+                ps = rownames(mat))
+
+y$treat <- factor(treat_map[y$sample])
+```
+
+## Total counts
+
+I calculated the total k-mer count for each pseudosample and visualized it by sample and treatment.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+total_counts <- rowSums(mat)
+variances <- apply(mat, 1, var)
+
+df_summary <- data.frame(Pseudosample = rownames(mat),
+                         Sample = sub("_.*", "", rownames(mat)),
+                         Total = total_counts,
+                         Variance = variances)
+df_summary$treat <- factor(treat_map[df_summary$Sample])
+
+ggplot(df_summary, aes(Sample, Total, color = treat, fill = treat)) +
+  geom_boxplot(alpha = 0.5) +
+  theme_light() +
+  labs(title = "Total k-mer Counts per Pseudosample", y = "Total Counts") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set2")
+```
+
+> Most treatments behaved nicely, showing relatively consistent totals across replicates. Then came control sample `SRR1542404`, with noticeably higher counts and more variability than anyone asked for. This could be due to differences in sequencing depth or pre-processing hiccups. The good news: no systematic bias was observed across the remaining samples, so the pipeline (mostly) survived its first test.
+
+## Variance
+
+To evaluate within treatment consistency, I looked at the variance of k-mer counts per pseudosample and visualized it by treatment and replicate.
+
+```{r}
+df_summary$rep <- factor(c(rep(1, 100), rep(2,100)))
+
+ggplot(df_summary, aes(x = Variance, color = rep, fill = rep)) +
+  geom_density(alpha = 0.5) +
+  theme_light() +
+  labs(title = "Density of Variance per Treatment", x = "Variance") +
+  scale_fill_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set2") +
+  theme(legend.title = element_blank()) +
+  facet_wrap(~treat, scales = 'free')
+```
+
+> Overall, `Drought_1h`, `Drought_Heat_1h`, and `Heat_1h` showed small differences between replicates. This could be due to real biological variation or just some noise from sequencing. The control group had higher variation again, which makes sense because it also had more total reads.
+
+## PCA
+
+```{r}
+library(plotly)
+pca <- prcomp(mat, center = TRUE, scale. = TRUE)
+pca_df <- as.data.frame(pca$x[, 1:3])
+pca_df$treat <- y$treat
+#head(pca_df)
+
+plot_ly(pca_df,
+        x = ~PC1, y = ~PC2, z = ~PC3, 
+        color = ~treat, 
+        colors = "Set2",
+        type = "scatter3d", 
+        mode = "markers") %>%
+  layout(title = "PCA: First 3 Components")
+```
+
+> The first three principal components explained… less than 1% of the variance. The PCA plot was essentially an abstract painting with no clear separation between treatment groups, no clusters, just ~vibes~. This suggests that variation is spread thinly across a high number of dimensions and that PCA, while still a classic, isn’t going to solve this mystery alone. 
+
+## t-SNE
+
+```{r}
+library(Rtsne)
+tsne_res <- Rtsne(mat, dims = 2, perplexity = 5, verbose = TRUE, max_iter = 1000)
+tsne_res_df <- as.data.frame(tsne_res$Y)
+tsne_res_df$treat <- y$treat
+
+plot_ly(tsne_res_df, 
+        x = ~V1, y = ~V2, 
+        color = ~treat, 
+        colors = "Set2", 
+        type = "scatter", 
+        mode = "markers") 
+```   
+
+> Unlike PCA, t-SNE actually did something useful. It revealed structured groupings among treatments, with some overlap but still kept a bit of internal structure.
+>
+> Overall, the t-SNE results suggest that the k-mer-based representation does capture biologically meaningful differences between treatments, enough to justify moving forward with classification models.
+
+<!--chapter:end:05_ExploratoryAnalysis.Rmd-->
+
+---
+title: "Models"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# Models
+
+## Random Forest
+
+To explore how well the data could be classified, I tested a grid of hyperparameter combinations, varying two core knobs of the Random Forest algorithm:
+
+- `mtry`: Number of variables randomly sampled at each split (set to 500, 1000, and p — where p is the total number of predictors)
+
+- `nodesize`: Minimum number of samples per terminal node (set to 5, 10, and 20)
+
+These values were chosen to explore the tradeoff between shallow vs deep trees and narrow vs wide feature subsets. 
+
+The models were trained and evaluated using a one-vs-all strategy for four stress conditions. For each condition, one biological replicate was used for training and the other for testing because, as you may recall, I only had two replicates per condition and had to get creative.
+
+Thanks to the 13k+ predictors, 4 stress conditions, and 9 hyperparameter combos, training all models took around **20 hours on 30 parallel workers**. Each Random Forest used **500 trees** and applied class weights to reduce the classic “I’ll-just-predict-the-majority-class” laziness.
+
+```{r, eval=FALSE}
+#!/usr/bin/env Rscript
+
+cat("STARTING SCRIPT AT: ", as.character(Sys.time()), "\n")
+
+## Data ----
+library(tidyverse)
+library(randomForest)
+library(doParallel)
+library(foreach)
+library(stringr)
+
+cat("Loading data...\n")
+
+count_clean2 <- readRDS('~/AGRO920/results/count_clean2.rds')
+
+treat_map <- c(SRR1542404 = "Control", SRR1542405 = "Control",
+               SRR1542406 = "Drought_1h", SRR1542407 = "Drought_1h",
+               SRR1542408 = "Drought_6h", SRR1542409 = "Drought_6h",
+               SRR1542410 = "Heat_1h", SRR1542411 = "Heat_1h",
+               SRR1542412 = "Heat_6h", SRR1542413 = "Heat_6h",
+               SRR1542414 = "Drought_Heat_1h",SRR1542415 = "Drought_Heat_1h",
+               SRR1542416 = "Drought_Heat_6h", SRR1542417 = "Drought_Heat_6h")
+
+y <- data.frame(sample = sub("_.*", "", rownames(count_clean2)),
+                ps = rownames(count_clean2))
+y$treat <- factor(treat_map[y$sample])
+
+set.seed(2310)
+sort_data <- data.frame(Sample = sort(unique(y$sample)),
+                        Rep = factor(1:2))
+sort_data$Trat <- treat_map[sort_data$Sample] 
+
+group1 <- sort_data %>% 
+  group_by(Trat) %>% 
+  slice_sample(n = 1) %>% 
+  ungroup()
+
+y_train <- filter(y, sample %in% group1$Sample) 
+y_test <- filter(y, !(sample %in% group1$Sample)) 
+
+train_idx <- rownames(count_clean2) %in% y_train$ps
+X_train <- count_clean2[train_idx, , drop = FALSE]
+
+test_idx <- rownames(count_clean2) %in% y_test$ps
+X_test <- count_clean2[test_idx,  , drop = FALSE]
+
+treatments <- unique(y_train$treat)
+
+labels <- c("drought_1h", "drought_6h", "heat_1h", "heat_6h")
+
+y_multi <- y[, 1:3] %>%
+  mutate(drought_1h = ifelse(str_detect(treat, "Drought") & str_detect(treat, "1h"), 1, 0),
+         drought_6h = ifelse(str_detect(treat, "Drought") & str_detect(treat, "6h"), 1, 0),
+         heat_1h = ifelse(str_detect(treat, "Heat") & str_detect(treat, "1h"), 1, 0),
+         heat_6h = ifelse(str_detect(treat, "Heat") & str_detect(treat, "6h"), 1, 0))
+
+y_train_multi <- y_multi %>% 
+  filter(sample %in% group1$Sample) %>% 
+  select(-sample, -treat)
+
+y_test_multi <- y_multi %>% 
+  filter(!(sample %in% group1$Sample)) %>% 
+  select(-sample, -treat)
+
+X_train <- as.data.frame(X_train)
+X_train$control <- ifelse(y_train$treat == "Control", 1, 0)
+
+X_test <- as.data.frame(X_test)
+X_test$control <- ifelse(y_test$treat == "Control", 1, 0)
+
+## Training ----
+cat("TRAINING MODELS - START: ", as.character(Sys.time()), "\n")
+
+cl <- makeCluster(30)
+registerDoParallel(cl)
+
+mtry_vals <- c(500, 1000, ncol(X_train))
+nodesize_vals <- c(5, 10, 20)
+grid <- expand.grid(mtry = mtry_vals, nodesize = nodesize_vals)
+
+results_grid <- list()
+
+for (label in labels) {
+  results_grid[[label]] <- foreach(i = 1:nrow(grid), .packages = "randomForest") %dopar% {
+    
+    m <- grid$mtry[i]
+    n <- grid$nodesize[i]
+    
+    result_model_list <- list()
+    
+    for (t in treatments) {
+      idx_test <- which(y_train$treat == t)
+      idx_train <- which(y_train$treat != t)
+      
+      X_tmp <- as.data.frame(X_train[idx_train, ])
+      X_tmp$control <- ifelse(y_train$treat[idx_train] == "Control", 1, 0)
+      
+      y_tmp <- factor(y_train_multi[[label]][idx_train])
+      
+      rf_model <- randomForest(x = X_tmp,
+                               y = y_tmp,
+                               ntree = 500,
+                               mtry = m,
+                               nodesize = n,
+                               importance = TRUE,
+                               classwt = c("0" = 1, "1" = 2.5))
+      
+      pred_prob <- predict(rf_model, newdata = cbind(X_train[idx_test, ], control = ifelse(y_train$treat[idx_test] == "Control", 1, 0)),type = "prob")[, 2]
+      pred <- ifelse(pred_prob > 0.5, 1, 0)
+      obs <- y_train_multi[[label]][idx_test]
+      
+      result_model_list[[t]] <- data.frame(treatment = t,
+                                           predicted = pred,
+                                           prob = pred_prob,
+                                           observed = obs,
+                                           mtry = m,
+                                           nodesize = n)
+    }
+    
+    do.call(rbind, result_model_list)
+  }
+}
+
+cat("TRAINING MODELS - END: ", as.character(Sys.time()), "\n")
+
+## Test ----
+cat("TESTING MODELS - START: ", as.character(Sys.time()), "\n")
+
+rf_test_models <- list()
+
+for (label in labels) {
+  y_train_label <- factor(y_train_multi[[label]])
+  y_test_label  <- factor(y_test_multi[[label]])
+  
+  rf_test_models[[label]] <- foreach(i = 1:nrow(grid), .packages = "randomForest") %dopar% {
+    m <- grid$mtry[i]
+    n <- grid$nodesize[i]
+    
+    rf_model <- randomForest(x = X_train, y = y_train_label,
+                             ntree = 500,
+                             mtry = m,
+                             nodesize = n,
+                             importance = TRUE,
+                             classwt = c("0" = 1, "1" = 2.5))
+    
+    pred_prob <- predict(rf_model, X_test, type = "prob")[,2]
+    pred <- ifelse(pred_prob > 0.5, 1, 0)
+    
+    acc <- mean(pred == y_test_label)
+    
+    list(model = rf_model,
+         mtry = m,
+         nodesize = n,
+         acc = acc,
+         predictions = pred,
+         predicted_prob = pred_prob,
+         observed = y_test_label)
+  }
+}
+
+stopCluster(cl)
+registerDoSEQ()
+
+cat("TESTING MODELS - END: ", as.character(Sys.time()), "\n")
+
+## Saving ----
+RF_final <- list(training = results_grid,
+                 test = rf_test_models)
+
+saveRDS(RF_final, '~/AGRO920/results/RF_final.rds')
+
+cat("SCRIPT FINISHED AT: ", as.character(Sys.time()), "\n")
+```
+
+```{r message=FALSE, warning=FALSE}
+library(caret)
+library(purrr)
+
+RF_final <- readRDS("~/AGRO920/results/RF_final.rds")
+```
+
+### Confusion Matrices
+
+```{r message=FALSE, warning=FALSE}
+conf_mats <- list()
+
+for (label in names(RF_final$test)) {
+  conf_mats[[label]] <- list()
+  
+  for (model in RF_final$test[[label]]) {
+
+    obs <- model$observed
+    pred <- model$predictions
+    key <- paste0("mtry=", model$mtry, "_node=", model$nodesize)
+    
+    cm <- table(factor(obs, levels = c(0,1)), factor(pred, levels = c(0,1)))
+    cm_prop <- prop.table(cm, margin = 1)  
+    
+    conf_mats[[label]][[key]] <- cm_prop
+  }
+}
+
+conf_df <- map_dfr(names(conf_mats), function(label) {
+  map_dfr(names(conf_mats[[label]]), function(model_id) {
+    mat <- conf_mats[[label]][[model_id]]
+
+    mat %>% 
+      as.data.frame(as.table(mat)) %>%
+      rename(True = Var1, Pred = Var2, Proportion = Freq) %>%
+      mutate(Label = label,
+             Model = model_id)
+  })
+})
+
+rownames(conf_df) <- NULL
+```
+
+```{r}
+ggplot(conf_df, aes(x = Pred, y = True, fill = Proportion)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "#08519c") +
+  facet_grid(Label ~ Model) +
+  geom_text(aes(label = round(Proportion, 2)), color = "black", size = 3) +
+  labs(x = "Predicted Class",
+       y = "True Class",
+       fill = "Proportion") +
+  theme_light(base_size = 12) +
+  theme(strip.text = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        panel.grid = element_blank(),
+        strip.text.x = element_text(color = 'black'),
+        strip.text.y = element_text(color = 'black'))
+```
+
+>  Only `heat_1h` behaved like a as a desired model: consistent, predictable, and easy to classify. The other conditions, especially anything drought-related, turned out to be more... dramatic. In many cases, models predicted everything as positive. That’s great for recall, but not so great for precision or balanced accuracy. Basically: if the model always say "0" or "1" it is not technically wrong, but it is not very helpful either.
+
+
+### Performance Metrics and ROC Curves
+
+Each model was evaluated using four metrics: **Balanced Accuracy, F1-Score, Precision, and Recall**. 
+
+```{r message=FALSE, warning=FALSE}
+compute_metrics <- function(obs, pred) {
+  cm <- confusionMatrix(factor(pred), factor(obs), positive = "1")
+  out <- cm$byClass[c("Balanced Accuracy", "F1", "Precision", "Recall")]
+  
+  return(as.list(out))
+}
+
+# Test metrics
+test_metrics <- map_dfr(names(RF_final$test), function(label) {
+  map_dfr(RF_final$test[[label]], function(model) {
+    m <- compute_metrics(model$observed, model$predictions)
+    tibble(Label = label,
+           mtry = model$mtry,
+           nodesize = model$nodesize,
+           Phase = "test",
+           BalancedAccuracy = m$`Balanced Accuracy`,
+           F1 = m$F1,
+           Precision = m$Precision,
+           Recall = m$Recall)
+  })
+})
+
+test_metrics <- test_metrics %>%
+  select(Label, mtry, nodesize, BalancedAccuracy, F1, Precision, Recall) %>%
+  pivot_longer(cols = c(BalancedAccuracy, F1, Precision, Recall),
+               names_to = "Metric", values_to = "Value")
+```
+
+```{r}
+plot_met <-
+ggplot(test_metrics, aes(x = Metric, y = Value,
+                      group = interaction(mtry, nodesize),
+                      color = factor(nodesize),
+                      linetype = factor(mtry))) +
+  geom_line(linewidth = .7, alpha = 0.7) +
+  geom_point(size = 2, alpha = 0.7) +
+  facet_wrap(~ Label, ncol = 1) +
+  theme_light() +
+  labs(y = "Score", x = '',
+       color = "Nodesize",
+       linetype = "Mtry") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        strip.text = element_text(color = 'black'),
+        legend.position = 'none') +
+  scale_color_manual(values = c('#233d4d', '#fe7f2d', '#83c5be')) +
+  scale_linetype_manual(values = c("500" = "solid", "1000" = "dashed", "13491" = "dotted")) 
+```
+
+```{r message=FALSE, warning=FALSE}
+library(pROC)
+library(tibble)
+
+roc_all <- lapply(names(RF_final$test), function(label) {
+  models <- RF_final$test[[label]]
+  
+  rocs <- lapply(seq_along(models), function(i) {
+    x <- models[[i]]
+    
+    r <- tryCatch({
+      roc_obj <- roc(response = x$observed,
+                     predictor = x$predicted_prob,
+                     quiet = TRUE,
+                     levels = c(0, 1),
+                     direction = "<")
+      
+      tibble(Label = label,
+             mtry = x$mtry,
+             nodesize = x$nodesize,
+             specificity = rev(roc_obj$specificities),
+             sensitivity = rev(roc_obj$sensitivities),
+             auc = as.numeric(auc(roc_obj)),
+             model_id = paste0("mtry=", x$mtry, "_nodesize=", x$nodesize))
+    })
+    
+    return(r)
+  })
+  
+  bind_rows(rocs)
+})
+
+roc_df <- bind_rows(roc_all)
+roc_df <- mutate(roc_df,
+                 mtry = as.factor(mtry),
+                 nodesize = as.factor(nodesize))
+```
+
+```{r}
+plot_roc <-
+ggplot(roc_df, aes(x = 1 - specificity, 
+                   y = sensitivity, 
+                   color = factor(nodesize), 
+                   linetype = factor(mtry))) +
+  geom_line(alpha = 0.7, linewidth = 0.7) +
+  facet_wrap(~ Label, ncol = 1) +
+  theme_light() +
+  labs(x = "False Positive Rate",
+       y = "True Positive Rate",
+       color = "nodesize",
+       linetype = "mtry") +
+  scale_color_manual(values = c('#233d4d', '#fe7f2d', '#83c5be')) +
+  scale_linetype_manual(values = c("500" = "solid", "1000" = "dashed", "13491" = "dotted")) +
+  theme(strip.text = element_text(color = 'black'))
+```
+
+```{r}
+library(gridExtra)
+library(grid)
+
+g1 <- ggplotGrob(plot_met)
+g2 <- ggplotGrob(plot_roc)
+
+max_height <- grid::unit.pmax(g1$heights, g2$heights)
+g1$heights <- max_height
+g2$heights <- max_height
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+> Once again, `heat_1h` attract attention with high and stable performance across the board. Drought conditions, on the other hand, gave the models a hard time, often pushing them into the “just predict one class and hope for the best” corner. The result? **High recall, but poor precision and disappointing F1-scores**. `heat_6h` sat somewhere in the middle: still sensitive, but less specific.
+>
+> These patterns suggest that early heat stress triggers a clear and strong transcriptomic response, easily picked up at the k-mer level. Drought, however, might be slower to kick in or more tangled with noise, making it harder to pin down with the current approach.
+
+### Important k-mers associated with heat stress (1h)
+
+To look behind the scenes and see which sequences were pulling the strings, I extracted the top 20 k-mers ranked by **Mean Decrease in Gini** from the best-performing Random Forest trained on `heat_1h.`
+
+```{r}
+best_model <- RF_final$test[["heat_1h"]][[which.max(sapply(RF_final$test[["heat_1h"]], function(x) x$acc))]]$model
+
+imp <- as.data.frame(best_model$importance)
+
+imp_kmers <- imp %>%
+  rownames_to_column("kmer") %>%
+  filter(kmer != "control") %>%
+  arrange(desc(MeanDecreaseGini))
+
+top_kmers <- imp_kmers %>% slice_max(MeanDecreaseGini, n = 20)
+
+ggplot(top_kmers, aes(x = reorder(kmer, MeanDecreaseGini), y = MeanDecreaseGini)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  theme_minimal(base_size = 12) +
+  labs(x = "k-mer (41-mer)",
+       y = "Mean Decrease in Gini")
+
+
+```
+
+> **Unfortunately, I didn’t have time to validate whether these star k-mers actually map to known genes or differentially expressed regions. And I’m genuinely frustrated about that. It would have made the story stronger, more complete and biologically grounded. That said, these k-mers are ready for follow-up work: alignment to reference transcripts, GO enrichment, or anything else that helps explain why the model liked them so much. If I had more time, this would absolutely be next.
+
+
+<!--chapter:end:06_Models.Rmd-->
+

@@ -1,0 +1,1146 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{book}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\usepackage[normalem]{ulem}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\usepackage{booktabs}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage[]{natbib}
+\bibliographystyle{plainnat}
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={K-mer Extraction and Filtering},
+  pdfauthor={Gabriela Romero Campos},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{K-mer Extraction and Filtering}
+\author{Gabriela Romero Campos}
+\date{2025-05-14}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{1}
+\tableofcontents
+}
+\hypertarget{about}{%
+\chapter{About}\label{about}}
+
+This project was developed as part of the AGRO 920 -- Predictive Modeling for Plant Breeding course at Kansas State University. The goal wasn't to reinvent the wheel, but to show that I can work with complex biological data and apply machine learning models in a meaningful way. In short: build a working pipeline, survive the process, and (hopefully) get useful results.
+
+The project combines plant genomics, transcriptomics, and predictive modeling to find patterns in RNA-seq data related to abiotic stress in wheat (\emph{Triticum aestivum}). Instead of using a reference genome, I followed a reference free approach: breaking raw reads into k-mers and using them directly as input for machine learning models. It's a bit unconventional, but sometimes going around the map is faster than sticking to the official roads.
+
+All scripts, data processing steps, and model evaluations are clearly documented --- partly for reproducibility, and partly so future-me doesn't hate past-me when trying to understand what I did.
+
+The raw data and intermediate files are stored in the \textbf{AGRO920 folder of my Beocat user directory}. If you'd like access, feel free to ask, I'll gladly give permission. The \texttt{results} and \texttt{scripts} folders are also available on \href{https://github.com/GRCampo/AGRO920_FinalProject.git}{my GitHub} for anyone interested in the pipeline or plots without digging through a cluster.
+
+\hypertarget{data}{%
+\section{Data}\label{data}}
+
+The dataset used in this project comes from \href{https://doi.org/10.1186/s12870-015-0511-8}{Liu et al.~(2015)}, a study that investigated transcriptional responses of wheat under drought (DS), heat (HS), and combined heat and drought (HD) stress. The experiment used the TAM 107 cultivar, sampled at two time points (1h and 6h after stress onset), and focused on leaf tissue, where most of the drama tends to happen under stress. In total, 14 samples were sequenced, each with replicates, producing about 900 million 100-bp paired-end reads via the Illumina platform. A small and quiet dataset (\textasciitilde contains irony).
+
+For this project, the raw RNA-seq reads were downloaded from the NCBI SRA and processed through a reference-free, k-mer-based pipeline that is equal parts practical and a little bit original. The steps:
+
+\begin{itemize}
+\tightlist
+\item
+  Quality checks were performed with \textbf{FastQC}, \textbf{MultiQC}, and \textbf{MarkDuplicates}.
+\item
+  Reads were converted to FASTA and split into pseudo-samples (\textbf{100 files per sample}) to simulate replicates and make downstream modeling less of a statistical nightmare.
+\item
+  \textbf{Jellyfish} (v2.3.0) was used to count k-mers with a length of 41.
+\item
+  The resulting k-mer matrix was filtered by abundance (count \textgreater{} 10), variability (top 25\% CV), and redundancy (95\% similarity via CD-HIT), leaving behind a lean set of 13,490 representative k-mers.
+\end{itemize}
+
+Then, I used this k-mer matrix for:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Exploratory analysis} with PCA and t-SNE, to see whether the pseudo-samples wanted to behave and cluster by treatment.
+\item
+  Supervised modeling using \textbf{Random Forest}, to classify stress conditions and exposure times --- or at least try to.
+\item
+  Feature selection, to highlight the most informative k-mers.
+\end{itemize}
+
+\hypertarget{project-overview}{%
+\section{Project Overview}\label{project-overview}}
+
+\hypertarget{objective}{%
+\subsection{Objective}\label{objective}}
+
+This project aims to identify k-mers associated with specific abiotic stress conditions and time points in wheat using a machine learning framework. The central hypothesis? That raw RNA-seq reads contain hidden sequence patterns. Patterns that can be detected at the k-mer level, which reflect how the plant is responding to heat, drought, or the lovely combination of both.
+
+To test this, I built a reference-free pipeline that strings together preprocessing, pseudo-sample generation, k-mer extraction, dimensionality reduction, and supervised classification. The goal wasn't just to classify samples correctly (though that's nice), but to use the models to highlight the most informative k-mers --- those little fragments of sequence that might actually tell us something biologically interesting.
+
+\hypertarget{why-k-mers}{%
+\subsection{Why k-mers?}\label{why-k-mers}}
+
+Instead of relying on annotated genes or transcript quantification, this pipeline starts from scratch, literally from the raw reads. K-mer counting skips the need for a reference genome, which is great news if your species of interest doesn't have one (or has one that's\ldots{} questionable). It also gives you the chance to capture signal from other places as non-coding RNAs, or whatever else the reference might have missed or ignored. It's messy, but in a good way.
+
+\hypertarget{why-pseudo-samples-ps}{%
+\subsection{Why pseudo-samples (PS)?}\label{why-pseudo-samples-ps}}
+
+The original dataset has only two biological replicates per treatment, which is a great work but, let's be honest, not ideal for training machine learning models. To work around this, I created pseudosamples (PS): smaller subsets of reads, randomly split from the originals while keeping the paired-end structure intact.
+
+Are they true biological replicates? No.~Do they help the model see more of the internal variation without cheating? Yes, if you split your training and testing sets carefully (which I did). \textbf{It's not perfect}, but it's better than pretending two replicates are enough.
+
+\hypertarget{why-machine-learning}{%
+\subsection{Why machine learning?}\label{why-machine-learning}}
+
+Because this project lives at the intersection of ``too many variables'' and ``not enough samples,'' and that's exactly the kind of problem machine learning is designed for.
+
+Classical tools like edgeR or DESeq2 are great when you want to find single DEGs that behave nicely. But ML models can look at thousands of features at once and pick up more subtle or multivariate signal, the kind you'd never spot with p-values alone. Here, the models are used not just to classify but to learn and prioritize which k-mers matter most, opening the door to future work in stress diagnostics and functional genomics.
+
+\hypertarget{data-acquisition}{%
+\chapter{Data Acquisition}\label{data-acquisition}}
+
+\hypertarget{download}{%
+\section{Download}\label{download}}
+
+The dataset used in this study was generated by Liu et al.~(2015) and is publicly available at the NCBI Sequence Read Archive (SRA) under the BioProject accession \href{https://www.ncbi.nlm.nih.gov/bioproject/PRJNA271170}{PRJNA271170}.
+
+To download the 14 paired-end RNA-seq samples, I used \texttt{fasterq-dump} from the SRA Toolkit, wrapped in a SLURM job array to parallelize the process (because downloading 190 GB on a single core sounded like a terrible idea).
+
+Each file was compressed after download to save space.
+
+\textbf{Total size}: approximately \textbf{190 GB} (uncompressed).\\
+\textbf{Output}: 28 gzipped FASTQ files (\texttt{*\_1.fastq.gz} and \texttt{*\_2.fastq.gz} for each sample).
+
+\begin{quote}
+\textbf{Note:} The download script is stored in the \texttt{scripts} directory as \texttt{01\_runDownload.sbatch}.
+\end{quote}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash {-}l}
+\CommentTok{\#SBATCH {-}{-}job{-}name=data920\_download}
+\CommentTok{\#SBATCH {-}{-}time=1{-}00:00:00}
+\CommentTok{\#SBATCH {-}{-}mem=50G}
+\CommentTok{\#SBATCH {-}{-}nodes=1}
+\CommentTok{\#SBATCH {-}{-}ntasks{-}per{-}node=10}
+\CommentTok{\#SBATCH {-}{-}array=1{-}14}
+
+\VariableTok{RUNS}\OperatorTok{=}\VariableTok{(}\StringTok{"SRR1542404"} \StringTok{"SRR1542405"} \StringTok{"SRR1542406"} \StringTok{"SRR1542407"} \StringTok{"SRR1542408"} \StringTok{"SRR1542409"} \StringTok{"SRR1542410"} \StringTok{"SRR1542411"} \StringTok{"SRR1542412"} \StringTok{"SRR1542413"} \StringTok{"SRR1542414"} \StringTok{"SRR1542415"} \StringTok{"SRR1542416"} \StringTok{"SRR1542417"}\VariableTok{)}
+
+\VariableTok{RUN}\OperatorTok{=}\VariableTok{$\{RUNS}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\NormalTok{{-}1}\OperatorTok{]}\VariableTok{\}}
+
+\BuiltInTok{echo} \StringTok{"Processing }\VariableTok{$RUN}\StringTok{ Job Array ID: }\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\StringTok{"}
+
+\ExtensionTok{fasterq{-}dump} \AttributeTok{{-}{-}split{-}files} \AttributeTok{{-}{-}threads}\NormalTok{ 10 }\VariableTok{$RUN}
+
+\FunctionTok{gzip} \StringTok{"}\VariableTok{$\{RUN\}}\StringTok{\_1.fastq"}
+\FunctionTok{gzip} \StringTok{"}\VariableTok{$\{RUN\}}\StringTok{\_2.fastq"}
+
+\BuiltInTok{echo} \StringTok{"}\VariableTok{$RUN}\StringTok{ done!"}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{quality-control}{%
+\chapter{Quality Control}\label{quality-control}}
+
+Although this RNA-seq dataset came from a published study, it didn't include any quality control metrics. So, I ran an independent QC check to make sure the reads was well. This included \texttt{FastQC}, \texttt{MultiQC}, and duplicate removal with \texttt{MarkDuplicates} from the Picard toolkit (all with the goal of reducing technical noise and \emph{preserving my sanity} for the analyses ahead).
+
+\hypertarget{fastqc-and-multiqc}{%
+\section{FastQC and MultiQC}\label{fastqc-and-multiqc}}
+
+Each paired-end FASTQ file was evaluated using FastQC (v0.12.1) via SLURM array jobs. After that, I used MultiQC to bring everything together into one readable summary.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash {-}l}
+\CommentTok{\#SBATCH {-}{-}job{-}name=data920\_fastqc}
+\CommentTok{\#SBATCH {-}{-}time=02:00:00}
+\CommentTok{\#SBATCH {-}{-}mem=50G}
+\CommentTok{\#SBATCH {-}{-}nodes=1}
+\CommentTok{\#SBATCH {-}{-}ntasks{-}per{-}node=10}
+\CommentTok{\#SBATCH {-}{-}array=1{-}14}
+
+\CommentTok{\# Load Fastqc }
+\ExtensionTok{module}\NormalTok{ load FastQC/0.12.1{-}Java{-}11}
+
+\CommentTok{\# finding R1 and R2 files}
+\VariableTok{FASTQ\_FILES\_R1}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ /homes/grcampos/AGRO920/data/}\PreprocessorTok{*}\NormalTok{\_1.fastq.gz}\VariableTok{))}
+\VariableTok{FASTQ\_FILES\_R2}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ /homes/grcampos/AGRO920/data/}\PreprocessorTok{*}\NormalTok{\_2.fastq.gz}\VariableTok{))}
+
+\CommentTok{\# One file per array index}
+\VariableTok{FILE\_R1}\OperatorTok{=}\VariableTok{$\{FASTQ\_FILES\_R1}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\NormalTok{ {-} 1}\OperatorTok{]}\VariableTok{\}} \CommentTok{\#bash arrays starts with 0}
+\VariableTok{FILE\_R2}\OperatorTok{=}\VariableTok{$\{FASTQ\_FILES\_R2}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\NormalTok{ {-} 1}\OperatorTok{]}\VariableTok{\}}
+
+\CommentTok{\# Running Fatsqc}
+\BuiltInTok{echo} \StringTok{"Processing }\VariableTok{$FILE\_R1}\StringTok{ and }\VariableTok{$FILE\_R2}\StringTok{"}
+\ExtensionTok{fastqc} \AttributeTok{{-}t}\NormalTok{ 10 }\AttributeTok{{-}o}\NormalTok{ /homes/grcampos/AGRO920/fastqc\_reports }\StringTok{"}\VariableTok{$FILE\_R1}\StringTok{"} \StringTok{"}\VariableTok{$FILE\_R2}\StringTok{"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{module}\NormalTok{ load MultiQC/1.14{-}foss{-}2022a}
+
+\ExtensionTok{sbatch} \AttributeTok{{-}{-}job{-}name}\OperatorTok{=}\NormalTok{mqc920 }\AttributeTok{{-}{-}time}\OperatorTok{=}\NormalTok{02:00:00 }\AttributeTok{{-}{-}mem}\OperatorTok{=}\NormalTok{10G }\AttributeTok{{-}{-}nodes}\OperatorTok{=}\NormalTok{1 }\AttributeTok{{-}{-}wrap}\OperatorTok{=}\StringTok{"multiqc /bulk/eakhunov/grcampos/embeddings/fastqc\_reports {-}o /bulk/eakhunov/grcampos/embeddings/fastqc\_reports"}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Output:} All FastQC and MultiQC reports are saved in the \texttt{fastqc\_reports/} directory.
+
+\href{files/multiqc_report.html}{Click here to open the MultiQC report}
+
+\hypertarget{duplicate-removal-with-markduplicates}{%
+\section{Duplicate Removal with MarkDuplicates}\label{duplicate-removal-with-markduplicates}}
+
+Next, I addressed the possibility of overrepresented sequences, which could skew k-mer frequencies. Using Picard's MarkDuplicates, I converted the FASTQ files to BAM, marked duplicates, converted them back to deduplicated FASTQ files, and cleaned up all the temporary BAMs to avoid filling up the server (again).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash {-}l}
+\CommentTok{\#SBATCH {-}{-}job{-}name=data920\_markD}
+\CommentTok{\#SBATCH {-}{-}time=4{-}00:00:00}
+\CommentTok{\#SBATCH {-}{-}mem=50G}
+\CommentTok{\#SBATCH {-}{-}nodes=1}
+\CommentTok{\#SBATCH {-}{-}ntasks{-}per{-}node=10}
+\CommentTok{\#SBATCH {-}{-}array=1{-}14}
+
+\ExtensionTok{module}\NormalTok{ load picard/2.25.1{-}Java{-}11}
+
+\CommentTok{\#  List of paired{-}end FASTQ files}
+\VariableTok{FASTQ\_FILES\_R1}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ data/}\PreprocessorTok{*}\NormalTok{\_1.fastq.gz}\VariableTok{))}
+\VariableTok{FASTQ\_FILES\_R2}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ data/}\PreprocessorTok{*}\NormalTok{\_2.fastq.gz}\VariableTok{))}
+
+\CommentTok{\# One file per array index}
+\VariableTok{FILE\_R1}\OperatorTok{=}\VariableTok{$\{FASTQ\_FILES\_R1}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\NormalTok{ {-} 1}\OperatorTok{]}\VariableTok{\}}
+\VariableTok{FILE\_R2}\OperatorTok{=}\VariableTok{$\{FASTQ\_FILES\_R2}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\NormalTok{ {-} 1}\OperatorTok{]}\VariableTok{\}}
+\VariableTok{SAMPLE\_NAME}\OperatorTok{=}\VariableTok{$(}\FunctionTok{basename} \StringTok{"}\VariableTok{$FILE\_R1}\StringTok{"} \KeywordTok{|} \FunctionTok{sed} \StringTok{\textquotesingle{}s/\_1.fastq.gz//\textquotesingle{}}\VariableTok{)}
+
+\BuiltInTok{echo} \StringTok{"Processing sample: }\VariableTok{$SAMPLE\_NAME}\StringTok{"}
+\ExtensionTok{java} \AttributeTok{{-}jar} \VariableTok{$EBROOTPICARD}\NormalTok{/picard.jar FastqToSam }\AttributeTok{{-}F1}\OperatorTok{=}\StringTok{"}\VariableTok{$FILE\_R1}\StringTok{"} \AttributeTok{{-}F2}\OperatorTok{=}\StringTok{"}\VariableTok{$FILE\_R2}\StringTok{"}\NormalTok{ O=}\StringTok{"bam\_files/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_unaligned.bam"} \AttributeTok{{-}SM}\OperatorTok{=}\StringTok{"}\VariableTok{$SAMPLE\_NAME}\StringTok{"}
+\BuiltInTok{echo} \StringTok{"FASTQ to BAM completed for }\VariableTok{$SAMPLE\_NAME}\StringTok{"}
+
+\CommentTok{\# Remove duplicates with MarkDuplicates}
+\ExtensionTok{java} \AttributeTok{{-}jar} \VariableTok{$EBROOTPICARD}\NormalTok{/picard.jar MarkDuplicates I=}\StringTok{"bam\_files/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_unaligned.bam"}\NormalTok{ O=}\StringTok{"bam\_files/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_deduplicated.bam"}\NormalTok{ M=}\StringTok{"bam\_files/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_duplicate\_metrics.txt"}\NormalTok{ REMOVE\_DUPLICATES=true VALIDATION\_STRINGENCY=LENIENT }\CommentTok{\#Lenient: Display warnings but will continue processing even with minor errors.}
+\BuiltInTok{echo} \StringTok{"MarkDuplicates completed for }\VariableTok{$SAMPLE\_NAME}\StringTok{"}
+
+\CommentTok{\# Convert BAM back to FASTQ}
+\ExtensionTok{java} \AttributeTok{{-}jar} \VariableTok{$EBROOTPICARD}\NormalTok{/picard.jar SamToFastq I=}\StringTok{"bam\_files/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_deduplicated.bam"}\NormalTok{ F=}\StringTok{"fastq\_filtered/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_R1\_clean.fastq.gz"}\NormalTok{ F2=}\StringTok{"/fastq\_filtered/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_R2\_clean.fastq.gz"}
+\BuiltInTok{echo} \StringTok{"BAM to FASTQ completed for }\VariableTok{$SAMPLE\_NAME}\StringTok{"}
+
+\CommentTok{\# Remove BAM files}
+\FunctionTok{rm} \StringTok{"bam\_files/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_unaligned.bam"}
+\FunctionTok{rm} \StringTok{"bam\_files/}\VariableTok{$\{SAMPLE\_NAME\}}\StringTok{\_deduplicated.bam"}
+
+\BuiltInTok{echo} \StringTok{"Processing completed for }\VariableTok{$SAMPLE\_NAME}\StringTok{!"}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Output:} All and duplication metrics (\texttt{*\_duplicate\_metrics.txt}) were saved to the \texttt{bam\_files/} directory. The intermediate BAM files were removed to save memory.
+
+No major PCR duplication was observed. According to Picard, most samples had zero or negligible duplicated reads, meaning the original RNA-seq libraries were solid.
+
+\begin{quote}
+Note: All scripts used in this section are stored in the \texttt{scripts/} directory as \texttt{02\_runFastqc.sbatch}, and \texttt{03\_runDeduplication.sbatch}.
+\end{quote}
+
+\hypertarget{pseudosamples-from-raw-reads}{%
+\chapter{Pseudosamples from Raw Reads}\label{pseudosamples-from-raw-reads}}
+
+The original dataset included only two biological replicates per treatment, which is definitely not enough for training machine learning models. To make the most of the data, I implemented a pseudosample strategy: \textbf{splitting each sample into 100 non-overlapping subsets while keeping the paired-end structure intact}. These pseudosamples aren't biologically independent, but they allow the model to ``see'' more of the internal structure and variability while still respecting the original replicate boundaries during validation.
+
+\hypertarget{merge-paired-end-reads-into-a-single-fasta}{%
+\section{Merge Paired-end Reads into a Single FASTA}\label{merge-paired-end-reads-into-a-single-fasta}}
+
+Before splitting, forward and reverse reads were merged into a single interleaved FASTA file. This made downstream processing cleaner and kept both ends of each read together.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash {-}l}
+\CommentTok{\#SBATCH {-}{-}job{-}name=data920}
+\CommentTok{\#SBATCH {-}{-}time=4{-}00:00:00}
+\CommentTok{\#SBATCH {-}{-}mem=50G}
+\CommentTok{\#SBATCH {-}{-}nodes=1}
+\CommentTok{\#SBATCH {-}{-}ntasks{-}per{-}node=1}
+\CommentTok{\#SBATCH {-}{-}array=1{-}14}
+
+\VariableTok{FASTQ\_LIST}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ ./fasta\_files/}\PreprocessorTok{*}\NormalTok{\_1.fasta}\VariableTok{))}
+\VariableTok{FASTQ1}\OperatorTok{=}\VariableTok{$\{FASTQ\_LIST}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\NormalTok{ {-} 1}\OperatorTok{]}\VariableTok{\}}
+\VariableTok{FASTQ2}\OperatorTok{=}\VariableTok{$(}\BuiltInTok{echo} \VariableTok{$FASTQ1} \KeywordTok{|} \FunctionTok{sed} \StringTok{\textquotesingle{}s/\_1.fasta/\_2.fasta/\textquotesingle{}}\VariableTok{)}  
+\VariableTok{OUTPUT}\OperatorTok{=}\StringTok{"}\VariableTok{$(}\FunctionTok{basename} \StringTok{"}\VariableTok{$FASTQ1}\StringTok{"} \KeywordTok{|} \FunctionTok{sed} \StringTok{\textquotesingle{}s/\_1.fasta/\_merged.fasta/\textquotesingle{}}\VariableTok{)}\StringTok{"}
+
+\FunctionTok{cat} \StringTok{"}\VariableTok{$FASTQ1}\StringTok{"} \StringTok{"}\VariableTok{$FASTQ2}\StringTok{"} \OperatorTok{\textgreater{}} \StringTok{"}\VariableTok{$OUTPUT}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"Done for }\VariableTok{$FASTQ1}\StringTok{ e }\VariableTok{$FASTQ2}\StringTok{!"}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{split-into-pseudosamples}{%
+\section{Split into Pseudosamples}\label{split-into-pseudosamples}}
+
+Each merged FASTA file was then split into 100 pseudosamples in a seven-step routine that's part bash wizardry, part bioinformatics therapy:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 1: Extract unique base read IDs}
+\end{itemize}
+
+Pulled read IDs from the merged FASTA and removed \texttt{/1} and \texttt{/2} suffixes to match up read pairs. The goal: treat each pair as a single unit.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 2: Shuffle}
+\end{itemize}
+
+Shuffled the read ID list to keep things unbiased.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 3: Split into 100 pseudo-ID files}
+\end{itemize}
+
+Divided the shuffled list into 100 chunks. Each one would become a pseudosample.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 4: Generate paired-end ID files}
+\end{itemize}
+
+Reattached the \texttt{/1} and \texttt{/2} to make sure paired reads were preserved.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 5: Create new pseudo-FASTA files}
+\end{itemize}
+
+Filtered the original merged FASTA to extract only the reads corresponding to each pseudo-ID file. \textbf{Result}: one FASTA per pseudosample.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 6: Create summary file}
+\end{itemize}
+
+For each original sample, a table was created listing how many reads ended up in each pseudosample and what their IDs were. Future-me says thanks.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 7: Clean up intermediate files}
+\end{itemize}
+
+Deleted the temporary ID files. They served their purpose.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=pseudo\_split}
+\CommentTok{\#SBATCH {-}{-}time=1{-}00:00:00}
+\CommentTok{\#SBATCH {-}{-}array=0{-}13}
+\CommentTok{\#SBATCH {-}{-}mem=25G}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=1}
+
+\BuiltInTok{echo} \StringTok{"Job started on }\VariableTok{$(}\FunctionTok{date}\VariableTok{)}\StringTok{"}
+\VariableTok{FASTA\_LIST}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ fasta\_files/}\PreprocessorTok{*}\NormalTok{\_merged.fasta}\VariableTok{))}
+\VariableTok{FASTA}\OperatorTok{=}\StringTok{"}\VariableTok{$\{FASTA\_LIST}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\OperatorTok{]}\VariableTok{\}}\StringTok{"}
+\VariableTok{BASENAME}\OperatorTok{=}\VariableTok{$(}\FunctionTok{basename} \StringTok{"}\VariableTok{$FASTA}\StringTok{"}\NormalTok{ \_merged.fasta}\VariableTok{)}
+
+\BuiltInTok{echo} \StringTok{"Processing: }\VariableTok{$BASENAME}\StringTok{"}
+\FunctionTok{mkdir} \AttributeTok{{-}p}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids}
+
+\CommentTok{\# Step 1: Extract unique base read IDs}
+\BuiltInTok{echo} \StringTok{"Extracting read IDs..."}
+\FunctionTok{grep} \StringTok{"\textgreater{}"} \StringTok{"}\VariableTok{$FASTA}\StringTok{"} \KeywordTok{|} \FunctionTok{sed} \StringTok{\textquotesingle{}s/\textgreater{}//g\textquotesingle{}} \KeywordTok{|} \FunctionTok{sed} \StringTok{\textquotesingle{}s/\textbackslash{}/[12]$//\textquotesingle{}} \KeywordTok{|} \FunctionTok{sort} \AttributeTok{{-}u} \OperatorTok{\textgreater{}}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/}\VariableTok{$\{BASENAME\}}\NormalTok{\_ID.txt}
+
+\CommentTok{\# Step 2: Shuffle}
+\BuiltInTok{echo} \StringTok{"Shuffling IDs..."}
+\FunctionTok{shuf}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/}\VariableTok{$\{BASENAME\}}\NormalTok{\_ID.txt }\OperatorTok{\textgreater{}}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/}\VariableTok{$\{BASENAME\}}\NormalTok{\_shufID.txt}
+
+\CommentTok{\# Step 3: Split into 100 pseudo{-}ID files}
+\BuiltInTok{echo} \StringTok{"Splitting into 100 pseudo{-}ID files..."}
+\VariableTok{total}\OperatorTok{=}\VariableTok{$(}\FunctionTok{wc} \AttributeTok{{-}l} \OperatorTok{\textless{}}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/}\VariableTok{$\{BASENAME\}}\NormalTok{\_shufID.txt}\VariableTok{)}
+\VariableTok{lines\_per\_file}\OperatorTok{=}\VariableTok{$((}\NormalTok{ (}\VariableTok{total} \OperatorTok{+} \DecValTok{99}\NormalTok{) }\OperatorTok{/} \DecValTok{100} \VariableTok{))}
+
+\FunctionTok{split} \AttributeTok{{-}l} \VariableTok{$lines\_per\_file} \AttributeTok{{-}d} \AttributeTok{{-}a}\NormalTok{ 2 ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/}\VariableTok{$\{BASENAME\}}\NormalTok{\_shufID.txt ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/pseudo\_}
+
+\CommentTok{\# Step 4: Generate paired{-}end ID files}
+\BuiltInTok{echo} \StringTok{"Creating paired{-}end ID files..."}
+\ControlFlowTok{for}\NormalTok{ f }\KeywordTok{in}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/pseudo\_}\PreprocessorTok{*}\KeywordTok{;} \ControlFlowTok{do}
+    \FunctionTok{awk} \StringTok{\textquotesingle{}\{print $0"/1\textbackslash{}n"$0"/2"\}\textquotesingle{}} \StringTok{"}\VariableTok{$f}\StringTok{"} \OperatorTok{\textgreater{}} \StringTok{"}\VariableTok{$\{f\}}\StringTok{.txt"}
+\ControlFlowTok{done}
+
+\CommentTok{\# Step 5: Create new pseudo{-}fasta files}
+\BuiltInTok{echo} \StringTok{"Generating pseudo{-}fasta files..."}
+\ControlFlowTok{for}\NormalTok{ i }\KeywordTok{in} \VariableTok{$(}\FunctionTok{seq} \AttributeTok{{-}w}\NormalTok{ 0 99}\VariableTok{)}\KeywordTok{;} \ControlFlowTok{do}
+    \ExtensionTok{seqkit}\NormalTok{ grep }\AttributeTok{{-}f}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/pseudo\_}\VariableTok{$\{i\}}\NormalTok{.txt }\StringTok{"}\VariableTok{$FASTA}\StringTok{"} \AttributeTok{{-}o}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/}\VariableTok{$\{BASENAME\}}\NormalTok{\_ps}\VariableTok{$\{i\}}\NormalTok{.fasta}
+    \BuiltInTok{echo} \StringTok{"}\VariableTok{$\{BASENAME\}}\StringTok{\_ps}\VariableTok{$\{i\}}\StringTok{.fasta done."}
+\ControlFlowTok{done}
+
+\CommentTok{\# Step 6: Create summary file}
+\BuiltInTok{echo} \StringTok{"Creating summary..."}
+\VariableTok{SUMMARY\_FILE}\OperatorTok{=}\StringTok{"ps\_fasta/}\VariableTok{$\{BASENAME\}}\StringTok{/pseudo\_summary.txt"}
+\OperatorTok{\textgreater{}} \StringTok{"}\VariableTok{$SUMMARY\_FILE}\StringTok{"}
+
+\ControlFlowTok{for}\NormalTok{ f }\KeywordTok{in}\NormalTok{ ps\_fasta/}\VariableTok{$\{BASENAME\}}\NormalTok{/ids/pseudo\_}\PreprocessorTok{*}\KeywordTok{;} \ControlFlowTok{do}
+    \VariableTok{IDFILE}\OperatorTok{=}\VariableTok{$(}\FunctionTok{basename} \StringTok{"}\VariableTok{$f}\StringTok{"}\VariableTok{)}
+    \VariableTok{GROUP}\OperatorTok{=}\StringTok{"}\VariableTok{$\{IDFILE}\OperatorTok{\#\#}\PreprocessorTok{*}\NormalTok{\_}\VariableTok{\}}\StringTok{"}
+\StringTok{    GROUP="}\VariableTok{$\{GROUP}\OperatorTok{/}\SpecialStringTok{.txt}\OperatorTok{/}\VariableTok{\}}\StringTok{"}
+
+\StringTok{    clean\_ids=}\VariableTok{$(}\FunctionTok{awk} \AttributeTok{{-}F}\StringTok{\textquotesingle{}/\textquotesingle{}} \StringTok{\textquotesingle{}\{print $1\}\textquotesingle{}} \StringTok{"}\VariableTok{$f}\StringTok{"} \KeywordTok{|} \FunctionTok{sort} \AttributeTok{{-}u}\VariableTok{)}
+\StringTok{    count=}\VariableTok{$(}\BuiltInTok{echo} \StringTok{"}\VariableTok{$clean\_ids}\StringTok{"} \KeywordTok{|} \FunctionTok{wc} \AttributeTok{{-}l}\VariableTok{)}
+\StringTok{    ids\_line=}\VariableTok{$(}\BuiltInTok{echo} \StringTok{"}\VariableTok{$clean\_ids}\StringTok{"} \KeywordTok{|} \FunctionTok{paste} \AttributeTok{{-}sd} \StringTok{","} \AttributeTok{{-}}\VariableTok{)}
+
+\StringTok{    echo "}\OperatorTok{\textgreater{}}\NormalTok{ pseudo\_}\VariableTok{$\{GROUP\}} \KeywordTok{(}\VariableTok{$\{count\}}\NormalTok{ reads}\KeywordTok{)}\StringTok{" \textgreater{}\textgreater{} "}\VariableTok{$SUMMARY\_FILE}\StringTok{"}
+\StringTok{    echo "}\VariableTok{$ids\_line}\StringTok{" \textgreater{}\textgreater{} "}\VariableTok{$SUMMARY\_FILE}\StringTok{"}
+\StringTok{done}
+
+\StringTok{\# Step 7: Clean up intermediate pseudo ID files}
+\StringTok{echo "}\ExtensionTok{Cleaning}\NormalTok{ up intermediate ID files...}\StringTok{"}
+\StringTok{rm ps\_fasta/}\VariableTok{$\{BASENAME\}}\StringTok{/ids/pseudo\_*}
+
+\StringTok{echo "}\NormalTok{All pseudo{-}samples for }\VariableTok{$BASENAME}\NormalTok{ created successfully on }\VariableTok{$(}\FunctionTok{date}\VariableTok{)}\StringTok{"}
+\end{Highlighting}
+\end{Shaded}
+
+In total, this produced 1,400 pseudosamples (14 original samples \(\times\) 100 splits), which were then used as input for k-mer decomposition and model training in the next phases.
+
+\begin{quote}
+\textbf{Note:} To keep memory usage under control, all pseudosample FASTA files and summary tables were compressed into \texttt{pseudoFastas.tar.xz}. Unpack only if you're ready.
+
+The scripts used to run this whole routine are in the \texttt{scripts/} directory.
+\end{quote}
+
+\hypertarget{k-mer-extraction-and-filtering}{%
+\chapter{K-mer Extraction and Filtering}\label{k-mer-extraction-and-filtering}}
+
+To quantify sequence patterns across pseudo-samples without depending on a reference genome, I extracted 41-mers directly from raw reads using Jellyfish. This section outlines the full process of counting, filtering, and condensing millions of k-mers into something the models could actually handle.
+
+\hypertarget{k-mer-counting-with-jellyfish}{%
+\section{K-mer Counting with Jellyfish}\label{k-mer-counting-with-jellyfish}}
+
+Jellyfish v2.3.0 was used to count canonical \textbf{41-mers} from each pseudosample FASTA file. To avoid getting distracted by sequencing noise, only k-mers with frequency \textgreater= 10 were kept. The pipeline used a two-pass system: A filter was used to identify promising k-mer candidates, followed by a targeted recount of those that appeared frequently.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=kmer\_count}
+\CommentTok{\#SBATCH {-}{-}time=7{-}00:00:00}
+\CommentTok{\#SBATCH {-}{-}array=0{-}1399\%100   }
+\CommentTok{\#SBATCH {-}{-}mem=25G}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=10}
+
+\ExtensionTok{module}\NormalTok{ load Jellyfish/2.3.0{-}GCC{-}11.3.0}
+
+\BuiltInTok{echo} \StringTok{"Job started on }\VariableTok{$(}\FunctionTok{date}\VariableTok{)}\StringTok{"}
+
+\CommentTok{\# Step 1: Generate a list of all pseudo{-}fasta files}
+\ControlFlowTok{if} \BuiltInTok{[} \StringTok{"}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\StringTok{"} \OtherTok{{-}eq}\NormalTok{ 0 }\BuiltInTok{]}\KeywordTok{;} \ControlFlowTok{then}
+  \BuiltInTok{echo} \StringTok{"Generating list of pseudo{-}fasta files..."}
+  \FunctionTok{find}\NormalTok{ ps\_fasta }\AttributeTok{{-}type}\NormalTok{ f }\AttributeTok{{-}name} \StringTok{"*\_ps*.fasta"} \KeywordTok{|} \FunctionTok{sort} \OperatorTok{\textgreater{}}\NormalTok{ all\_pseudo\_fastas.list}
+\ControlFlowTok{fi}
+
+\FunctionTok{sleep}\NormalTok{ 10}
+
+\CommentTok{\# Step 2: file path }
+\VariableTok{FASTA}\OperatorTok{=}\VariableTok{$(}\FunctionTok{sed} \AttributeTok{{-}n} \StringTok{"}\VariableTok{$((SLURM\_ARRAY\_TASK\_ID} \OperatorTok{+} \DecValTok{1}\VariableTok{))}\StringTok{p"}\NormalTok{ all\_pseudo\_fastas.list}\VariableTok{)}
+\VariableTok{BASENAME}\OperatorTok{=}\VariableTok{$(}\FunctionTok{basename} \StringTok{"}\VariableTok{$FASTA}\StringTok{"}\NormalTok{ .fasta}\VariableTok{)}
+\VariableTok{DIRNAME}\OperatorTok{=}\VariableTok{$(}\FunctionTok{dirname} \StringTok{"}\VariableTok{$FASTA}\StringTok{"}\VariableTok{)}
+
+\BuiltInTok{echo} \StringTok{"Processing: }\VariableTok{$FASTA}\StringTok{"}
+
+\CommentTok{\# Step 3: Define output file paths}
+\VariableTok{BCFILE}\OperatorTok{=}\StringTok{"}\VariableTok{$\{DIRNAME\}}\StringTok{/}\VariableTok{$\{BASENAME\}}\StringTok{.bc"}
+\VariableTok{JFFILE}\OperatorTok{=}\StringTok{"}\VariableTok{$\{DIRNAME\}}\StringTok{/}\VariableTok{$\{BASENAME\}}\StringTok{.jf"}
+\VariableTok{TSVFILE}\OperatorTok{=}\StringTok{"}\VariableTok{$\{DIRNAME\}}\StringTok{/}\VariableTok{$\{BASENAME\}}\StringTok{\_k41.tsv"}
+
+\CommentTok{\# Step 4: First pass {-} Bloom Counter}
+\ExtensionTok{jellyfish}\NormalTok{ bc }\AttributeTok{{-}m}\NormalTok{ 41 }\AttributeTok{{-}s}\NormalTok{ 300M }\AttributeTok{{-}t}\NormalTok{ 10 }\AttributeTok{{-}o} \StringTok{"}\VariableTok{$BCFILE}\StringTok{"} \StringTok{"}\VariableTok{$FASTA}\StringTok{"}
+
+\CommentTok{\# Step 5: Second pass {-} count only k{-}mers with frequency \textgreater{}= 2}
+\ExtensionTok{jellyfish}\NormalTok{ count }\AttributeTok{{-}m}\NormalTok{ 41 }\AttributeTok{{-}s}\NormalTok{ 300M }\AttributeTok{{-}t}\NormalTok{ 10 }\AttributeTok{{-}{-}bc} \StringTok{"}\VariableTok{$BCFILE}\StringTok{"} \AttributeTok{{-}C} \AttributeTok{{-}o} \StringTok{"}\VariableTok{$JFFILE}\StringTok{"} \StringTok{"}\VariableTok{$FASTA}\StringTok{"}
+
+\CommentTok{\# Step 6: TSV format {-}\textgreater{} transformer}
+\ExtensionTok{jellyfish}\NormalTok{ dump }\AttributeTok{{-}c} \StringTok{"}\VariableTok{$JFFILE}\StringTok{"} \OperatorTok{\textgreater{}} \StringTok{"}\VariableTok{$TSVFILE}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"Finished: }\VariableTok{$TSVFILE}\StringTok{"}
+
+\CommentTok{\# Step 7: Rovome temporary Jellyfish files}
+\FunctionTok{rm} \AttributeTok{{-}f} \StringTok{"}\VariableTok{$BCFILE}\StringTok{"} \StringTok{"}\VariableTok{$JFFILE}\StringTok{"}
+\BuiltInTok{echo} \StringTok{"Temporary files removed: }\VariableTok{$BCFILE}\StringTok{ and }\VariableTok{$JFFILE}\StringTok{"}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Output:} One \texttt{.tsv} file per pseudosample containing k-mer sequences and their counts. Temporary \texttt{.jf} and \texttt{.bc} files were deleted to conserve space. The \texttt{.tsv} were compressed into the file \texttt{count.tar.xz}.
+
+\hypertarget{pseudosample-merging-by-treatment}{%
+\section{Pseudosample Merging by Treatment}\label{pseudosample-merging-by-treatment}}
+
+Given the total number of pseudosamples, processing them all at once wasn't an option (R crashed several times, no matter how much RAM I added) in real time. So, I merged count files in batches of 10 per treatment using \texttt{csvtk}, generating manageable chunks like \texttt{SRR1542404\_00-09.tsv}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=merge\_kmers}
+\CommentTok{\#SBATCH {-}{-}array=0{-}13}
+\CommentTok{\#SBATCH {-}{-}mem=200G}
+\CommentTok{\#SBATCH {-}{-}time=12:00:00}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=15}
+
+\CommentTok{\# List of treatment IDs (folders)}
+\VariableTok{TREAT\_IDS}\OperatorTok{=}\VariableTok{(}\NormalTok{SRR1542404 SRR1542405 SRR1542406 SRR1542407 SRR1542408 SRR1542409 SRR1542410 SRR1542411 SRR1542412 SRR1542413 SRR1542414 SRR1542415 SRR1542416 SRR1542417}\VariableTok{)}
+
+
+\VariableTok{TREAT\_ID}\OperatorTok{=}\VariableTok{$\{TREAT\_IDS}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\OperatorTok{]}\VariableTok{\}}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] Treatment start: }\VariableTok{$TREAT\_ID}\StringTok{"}
+
+\BuiltInTok{cd} \VariableTok{$TREAT\_ID}
+
+\CommentTok{\# Step 1: Fix TSV files}
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] Fixing TSV files."}
+\ControlFlowTok{for}\NormalTok{ f }\KeywordTok{in} \PreprocessorTok{*}\NormalTok{.tsv}\KeywordTok{;} \ControlFlowTok{do}
+  \CommentTok{\#insert header before the original first line}
+  \FunctionTok{sed} \AttributeTok{{-}i} \StringTok{\textquotesingle{}1s/\^{}/kmer\textbackslash{}tcount\textbackslash{}n/\textquotesingle{}} \StringTok{"}\VariableTok{$f}\StringTok{"}
+  \CommentTok{\#After line 2, replace first space with tab}
+  \FunctionTok{sed} \AttributeTok{{-}i} \StringTok{\textquotesingle{}2,$s/ /\textbackslash{}t/\textquotesingle{}} \StringTok{"}\VariableTok{$f}\StringTok{"}
+\ControlFlowTok{done}
+
+\CommentTok{\# Step 2: Merge all pseudo‐samples ps00…ps99 into a single matrix}
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 00{-}09."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{00..09\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_00{-}09.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 10{-}19."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{10..19\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_10{-}19.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 20{-}29."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{20..29\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_20{-}29.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 30{-}39."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{30..39\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_30{-}39.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 40{-}49."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{40..49\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_40{-}49.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 50{-}59."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{50..59\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_50{-}59.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 60{-}69."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{60..69\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_60{-}69.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 70{-}79."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{70..79\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_70{-}79.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 80{-}89."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{80..89\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_80{-}89.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] 90{-}99."}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\PreprocessorTok{*}\NormalTok{\_ps\{90..99\}\_k41.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ ../}\VariableTok{$\{TREAT\_ID\}}\NormalTok{\_90{-}99.tsv}
+
+\CommentTok{\# Done}
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] }\VariableTok{$TREAT\_ID}\StringTok{ completed."}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+\textbf{Note:} Each treatment resulted in 10 merged files, stored as \texttt{TREAT\_ID\_00-09.tsv} to \texttt{TREAT\_ID\_90-99.tsv}.
+\end{quote}
+
+\hypertarget{global-merging-by-group}{%
+\section{Global Merging by Group}\label{global-merging-by-group}}
+
+Even after merging by treatment, the data was still too big for a single R session (or for any mortal RAM configuration under 300 GB). So, treatments were split into two groups, each processed independently. For each group, the 10 treatment files were combined into 10 final matrices named like \texttt{FINAL\_group1\_PART.tsv}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=merge\_kmers}
+\CommentTok{\#SBATCH {-}{-}array=0{-}9}
+\CommentTok{\#SBATCH {-}{-}mem=200G}
+\CommentTok{\#SBATCH {-}{-}time=12:00:00}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=15}
+
+\VariableTok{PARTS}\OperatorTok{=}\VariableTok{(}\NormalTok{\_00{-}09.tsv \_10{-}19.tsv \_20{-}29.tsv \_30{-}39.tsv \_40{-}49.tsv \_50{-}59.tsv \_60{-}69.tsv \_70{-}79.tsv \_80{-}89.tsv \_90{-}99.tsv}\VariableTok{)}
+\VariableTok{PART}\OperatorTok{=}\VariableTok{$\{PARTS}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\OperatorTok{]}\VariableTok{\}}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 1"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"SRR1542404}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542407}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 2"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542409}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final2}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 3"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final2}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542411}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 4"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542413}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final2}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 5"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final2}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542415}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 6"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542416}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final2}\VariableTok{$PART}\StringTok{"}
+
+\FunctionTok{mv} \StringTok{"final2}\VariableTok{$PART}\StringTok{"} \StringTok{"FINAL\_group1}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"{-}{-}{-}{-}{-}Group 2{-}{-}{-}{-}{-}{-}"}
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 1"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"SRR1542405}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542406}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 2"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542408}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final2}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 3"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final2}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542410}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 4"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542412}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final2}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 5"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final2}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542414}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final}\VariableTok{$PART}\StringTok{"}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 6"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join }\StringTok{"final}\VariableTok{$PART}\StringTok{"} \StringTok{"SRR1542417}\VariableTok{$PART}\StringTok{"} \AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}} \StringTok{"final2}\VariableTok{$PART}\StringTok{"}
+
+\FunctionTok{mv} \StringTok{"final2}\VariableTok{$PART}\StringTok{"} \StringTok{"FINAL\_group2}\VariableTok{$PART}\StringTok{"}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Output:} A total of 20 files (10 per group), later converted to \texttt{.rds} format for faster loading in R. The original \texttt{.tsv} files were deleted, and the \texttt{.rds} versions were bundled in \texttt{kmer\_count.tar.xz}.
+
+\hypertarget{aggregation-and-total-count-per-k-mer}{%
+\section{Aggregation and Total Count per K-mer}\label{aggregation-and-total-count-per-k-mer}}
+
+Each final matrix was loaded in R, and total counts per k-mer were computed across all pseudosamples. A \texttt{.tsv} version of the totals was created for external filtering, while the intermediate \texttt{.rds} files were kept for sanity (and speed).
+
+\begin{quote}
+\textbf{Note:} All this was done via SLURM jobs, a necessary evil that saved me time.
+\end{quote}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=kmers}
+\CommentTok{\#SBATCH {-}{-}array=0{-}19}
+\CommentTok{\#SBATCH {-}{-}time=04:00:00}
+\CommentTok{\#SBATCH {-}{-}mem=50G}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=1}
+
+\ExtensionTok{module}\NormalTok{ load R/4.2.1{-}foss{-}2022a}
+
+\VariableTok{FILES\_LIST}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ FINAL\_group}\PreprocessorTok{*}\NormalTok{.tsv}\VariableTok{))}
+\VariableTok{FILE}\OperatorTok{=}\StringTok{"}\VariableTok{$\{FILES\_LIST}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\OperatorTok{]}\VariableTok{\}}\StringTok{"}
+
+\ExtensionTok{R} \AttributeTok{{-}{-}no{-}save} \AttributeTok{{-}q} \OperatorTok{\textless{}}\NormalTok{ editFiles1.R }\StringTok{"}\VariableTok{$FILE}\StringTok{"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  editFiles1.R
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/usr/bin/env Rscript}
+
+\NormalTok{args }\OtherTok{\textless{}{-}} \FunctionTok{commandArgs}\NormalTok{(}\AttributeTok{trailingOnly =} \ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(args[}\DecValTok{1}\NormalTok{])}
+
+\NormalTok{path\_files }\OtherTok{\textless{}{-}}\NormalTok{ args[}\DecValTok{1}\NormalTok{]}
+
+\FunctionTok{library}\NormalTok{(data.table)}
+\FunctionTok{library}\NormalTok{(stringr)}
+
+\FunctionTok{setwd}\NormalTok{(}\StringTok{\textquotesingle{}/bulk/eakhunov/grcampos/embeddings/\textquotesingle{}}\NormalTok{)}
+
+\NormalTok{tmp\_mat }\OtherTok{\textless{}{-}} \FunctionTok{fread}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}/bulk/eakhunov/grcampos/embeddings/kmer\_count/\textquotesingle{}}\NormalTok{, path\_files))}
+\FunctionTok{colnames}\NormalTok{(tmp\_mat)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \FunctionTok{str\_extract}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(tmp\_mat)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{], }\StringTok{"SRR}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{d+\_ps}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{d+"}\NormalTok{)}
+
+\NormalTok{kmer\_check }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{kmer =}\NormalTok{ tmp\_mat}\SpecialCharTok{$}\NormalTok{kmer,}
+                         \AttributeTok{count =} \FunctionTok{rowSums}\NormalTok{(tmp\_mat[, }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\AttributeTok{with =} \ConstantTok{FALSE}\NormalTok{]))}
+
+\NormalTok{name\_base }\OtherTok{\textless{}{-}}\NormalTok{ tools}\SpecialCharTok{::}\FunctionTok{file\_path\_sans\_ext}\NormalTok{(}\FunctionTok{basename}\NormalTok{(path\_files))}
+
+\FunctionTok{saveRDS}\NormalTok{(tmp\_mat, }\AttributeTok{file =} \FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}/bulk/eakhunov/grcampos/embeddings/kmer\_count/\textquotesingle{}}\NormalTok{, name\_base, }\StringTok{\textquotesingle{}.rds\textquotesingle{}}\NormalTok{))}
+\FunctionTok{write.table}\NormalTok{(kmer\_check, }\AttributeTok{file =} \FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}/bulk/eakhunov/grcampos/embeddings/kmer\_count/count\textquotesingle{}}\NormalTok{, name\_base, }\StringTok{\textquotesingle{}.tsv\textquotesingle{}}\NormalTok{), }\AttributeTok{quote =}\NormalTok{ F, }\AttributeTok{row.names =}\NormalTok{ F, }\AttributeTok{sep =} \StringTok{\textquotesingle{}}\SpecialCharTok{\textbackslash{}t}\StringTok{\textquotesingle{}}\NormalTok{)}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{\textquotesingle{}Done!\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{filtering-kmers}{%
+\section{Filtering kmers}\label{filtering-kmers}}
+
+\hypertarget{step-1-abundance-threshold}{%
+\subsection{Step 1: Abundance Threshold}\label{step-1-abundance-threshold}}
+
+First, I filtered out k-mers with total count \textless{} 10, reducing the dataset from a dropping \textasciitilde88 million k-mers to a more reasonable \textasciitilde45 million. This required recombining all parts into a single matrix (a fun reminder that splitting things helps performance, but reuniting them is unavoidable in the end).
+
+Matrix rows were reordered to align across all files, for consistency across files.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=merge\_count2}
+\CommentTok{\#SBATCH {-}{-}array=0}
+\CommentTok{\#SBATCH {-}{-}mem=200G}
+\CommentTok{\#SBATCH {-}{-}time=12:00:00}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=15}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 1"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join count\_00{-}09.tsv count\_10{-}19.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 2"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL.tsv count\_20{-}39.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL2.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 3"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL2.tsv count\_30{-}39.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 4"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL.tsv count\_40{-}49.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL2.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 5"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL2.tsv count\_50{-}59.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 6"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL.tsv count\_60{-}69.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL2.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 7"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL2.tsv count\_70{-}79.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 8"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL.tsv count\_80{-}89.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL2.tsv}
+
+\BuiltInTok{echo} \StringTok{"[}\VariableTok{$(}\FunctionTok{date} \StringTok{\textquotesingle{}+\%Y{-}\%m{-}\%d \%H:\%M:\%S\textquotesingle{}}\VariableTok{)}\StringTok{] step 9"}
+\ExtensionTok{\textasciitilde{}/Tools\_Scripts/csvtk}\NormalTok{ join FINAL2.tsv count\_90{-}99.tsv }\AttributeTok{{-}t} \AttributeTok{{-}f}\NormalTok{ 1 }\AttributeTok{{-}j}\NormalTok{ 15 }\AttributeTok{{-}{-}outer{-}join} \AttributeTok{{-}{-}na}\NormalTok{ 0 }\AttributeTok{{-}{-}prefix{-}filename} \AttributeTok{{-}{-}prefix{-}trim{-}ext} \OperatorTok{\textgreater{}}\NormalTok{ FINAL.tsv}
+
+\FunctionTok{mv}\NormalTok{ FINAL.tsv kmer\_count.tsv}
+\FunctionTok{rm}\NormalTok{ FINAL2.tsv}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{module}\NormalTok{ load R/4.2.1{-}foss{-}2022a}
+
+\ExtensionTok{sbatch} \AttributeTok{{-}{-}job{-}name}\OperatorTok{=}\NormalTok{R }\AttributeTok{{-}{-}time}\OperatorTok{=}\NormalTok{01{-}0:00:00 }\AttributeTok{{-}{-}mem}\OperatorTok{=}\NormalTok{100G }\AttributeTok{{-}{-}nodes}\OperatorTok{=}\NormalTok{1 }\AttributeTok{{-}{-}wrap}\OperatorTok{=}\StringTok{"R {-}{-}no{-}save {-}q \textless{} editFiles2.R"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  editFiles2.R
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/usr/bin/env Rscript}
+
+\FunctionTok{library}\NormalTok{(data.table)}
+
+\NormalTok{kmer\_count }\OtherTok{\textless{}{-}} \FunctionTok{fread}\NormalTok{(}\StringTok{\textquotesingle{}kmer\_count/kmer\_count.tsv\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{rename\_with}\NormalTok{(}\SpecialCharTok{\textasciitilde{}} \FunctionTok{str\_extract}\NormalTok{(., }\StringTok{"group[12](?:\_}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{d\{2\}{-}}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{d\{2\})?"}\NormalTok{), }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{TOTAL =} \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{across}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{))) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(TOTAL }\SpecialCharTok{\textgreater{}=} \DecValTok{10}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(}\DecValTok{1}\NormalTok{, TOTAL) }\CommentTok{\#45M}
+
+\FunctionTok{saveRDS}\NormalTok{(}\FunctionTok{as.vector}\NormalTok{(kmer\_filterMin}\SpecialCharTok{$}\NormalTok{kmer), }\AttributeTok{file =} \StringTok{\textquotesingle{}kmer\_count/kmer\_filterMin.rds\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=kmers}
+\CommentTok{\#SBATCH {-}{-}array=0{-}19}
+\CommentTok{\#SBATCH {-}{-}time=04:00:00}
+\CommentTok{\#SBATCH {-}{-}mem=200G}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=1}
+
+\ExtensionTok{module}\NormalTok{ load R/4.2.1{-}foss{-}2022a}
+
+\VariableTok{FILES\_LIST}\OperatorTok{=}\VariableTok{($(}\FunctionTok{ls}\NormalTok{ FINAL\_group2}\PreprocessorTok{*}\NormalTok{.rds}\VariableTok{))}
+\VariableTok{FILE}\OperatorTok{=}\StringTok{"}\VariableTok{$\{FILES\_LIST}\OperatorTok{[}\VariableTok{$SLURM\_ARRAY\_TASK\_ID}\OperatorTok{]}\VariableTok{\}}\StringTok{"}
+
+\ExtensionTok{Rscript}\NormalTok{ editFiles3.R }\StringTok{"}\VariableTok{$FILE}\StringTok{"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  editFiles3.R
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/usr/bin/env Rscript}
+
+\NormalTok{args }\OtherTok{\textless{}{-}} \FunctionTok{commandArgs}\NormalTok{(}\AttributeTok{trailingOnly =} \ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(args[}\DecValTok{1}\NormalTok{])}
+
+\NormalTok{path\_files }\OtherTok{\textless{}{-}}\NormalTok{ args[}\DecValTok{1}\NormalTok{]}
+
+\FunctionTok{library}\NormalTok{(data.table)}
+\FunctionTok{library}\NormalTok{(stringr)}
+\FunctionTok{library}\NormalTok{(tools)}
+
+\FunctionTok{setwd}\NormalTok{(}\StringTok{\textquotesingle{}/bulk/eakhunov/grcampos/embeddings/\textquotesingle{}}\NormalTok{)}
+
+
+\NormalTok{tmp\_dt }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}kmer\_count/\textquotesingle{}}\NormalTok{, path\_files))}
+\NormalTok{kmers }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\StringTok{\textquotesingle{}kmer\_count/kmer\_filterMin.rds\textquotesingle{}}\NormalTok{)}
+
+\NormalTok{name\_base }\OtherTok{\textless{}{-}} \FunctionTok{file\_path\_sans\_ext}\NormalTok{(}\FunctionTok{basename}\NormalTok{(path\_files))}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Min filter}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\NormalTok{tmp\_dt }\OtherTok{\textless{}{-}}\NormalTok{ tmp\_dt[kmer }\SpecialCharTok{\%in\%}\NormalTok{ kmers]}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Missing kmers}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\NormalTok{missing\_kmers }\OtherTok{\textless{}{-}} \FunctionTok{setdiff}\NormalTok{(kmers, tmp\_dt}\SpecialCharTok{$}\NormalTok{kmer)}
+
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{length}\NormalTok{(missing\_kmers) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{  n\_cols }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(tmp\_dt) }\SpecialCharTok{{-}} \DecValTok{1}
+\NormalTok{  tmp\_missing }\OtherTok{\textless{}{-}} \FunctionTok{data.table}\NormalTok{(}\AttributeTok{kmer =}\NormalTok{ missing\_kmers,}
+                            \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }\AttributeTok{nrow =} \FunctionTok{length}\NormalTok{(missing\_kmers), }\AttributeTok{ncol =}\NormalTok{ n\_cols))}
+  \FunctionTok{setnames}\NormalTok{(tmp\_missing, }\FunctionTok{colnames}\NormalTok{(tmp\_dt))}
+\NormalTok{  tmp\_dt }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(tmp\_dt, tmp\_missing)}
+\NormalTok{\}}
+\FunctionTok{gc}\NormalTok{()}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Ordering kmers}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\NormalTok{tmp\_dt }\OtherTok{\textless{}{-}}\NormalTok{ tmp\_dt[}\FunctionTok{match}\NormalTok{(kmers, tmp\_dt}\SpecialCharTok{$}\NormalTok{kmer)]}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Saving}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\FunctionTok{saveRDS}\NormalTok{(tmp\_dt, }\AttributeTok{file =} \FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}kmer\_count/\textquotesingle{}}\NormalTok{, name\_base, }\StringTok{\textquotesingle{}\_filter\_min.rds\textquotesingle{}}\NormalTok{))}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Done!}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{step-2-coefficient-of-variation-cv}{%
+\subsection{Step 2: Coefficient of Variation (CV)}\label{step-2-coefficient-of-variation-cv}}
+
+Next, I wanted to keep only the most dynamic k-mers, so I calculated the coefficient of variation (CV) for each. This task was divided into \textasciitilde4,000 chunks and submitted as SLURM jobs.
+
+\begin{quote}
+Runtime? 48 hours.
+\end{quote}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/bin/bash}
+\CommentTok{\#SBATCH {-}{-}job{-}name=chunk\_cv}
+\CommentTok{\#SBATCH {-}{-}array=374{-}4505\%100}
+\CommentTok{\#SBATCH {-}{-}time=2{-}00:00:00}
+\CommentTok{\#SBATCH {-}{-}mem=50G}
+\CommentTok{\#SBATCH {-}{-}cpus{-}per{-}task=1}
+
+\ExtensionTok{module}\NormalTok{ load R/4.2.1{-}foss{-}2022a}
+
+\ExtensionTok{Rscript}\NormalTok{ kmers\_CV\_byChunck.R }\VariableTok{$SLURM\_ARRAY\_TASK\_ID}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  kmers\_CV\_byChunck.R
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/usr/bin/env Rscript}
+
+\NormalTok{args }\OtherTok{\textless{}{-}} \FunctionTok{commandArgs}\NormalTok{(}\AttributeTok{trailingOnly =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{chunk\_id }\OtherTok{\textless{}{-}} \FunctionTok{as.integer}\NormalTok{(args[}\DecValTok{1}\NormalTok{])}
+
+\FunctionTok{library}\NormalTok{(data.table)}
+
+\FunctionTok{setwd}\NormalTok{(}\StringTok{\textquotesingle{}/bulk/eakhunov/grcampos/embeddings/\textquotesingle{}}\NormalTok{)}
+
+\NormalTok{files }\OtherTok{\textless{}{-}} \FunctionTok{list.files}\NormalTok{(}\StringTok{"kmer\_count/"}\NormalTok{, }\AttributeTok{pattern =} \StringTok{"\_filter\_min.rds$"}\NormalTok{, }\AttributeTok{full.names =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{chunk\_size }\OtherTok{\textless{}{-}} \DecValTok{10000}
+\NormalTok{n\_total }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(}\FunctionTok{readRDS}\NormalTok{(files[}\DecValTok{1}\NormalTok{]))}
+
+\NormalTok{rowSds }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x) }\FunctionTok{sqrt}\NormalTok{(}\FunctionTok{rowMeans}\NormalTok{((x }\SpecialCharTok{{-}} \FunctionTok{rowMeans}\NormalTok{(x))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+
+\NormalTok{line\_start }\OtherTok{\textless{}{-}}\NormalTok{ (chunk\_id }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{) }\SpecialCharTok{*}\NormalTok{ chunk\_size }\SpecialCharTok{+} \DecValTok{1}
+\NormalTok{line\_end }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(chunk\_id }\SpecialCharTok{*}\NormalTok{ chunk\_size, n\_total)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Processing chunk"}\NormalTok{, chunk\_id, }\StringTok{":"}\NormalTok{, line\_start, }\StringTok{"{-}"}\NormalTok{, line\_end, }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+
+\NormalTok{all\_cols }\OtherTok{\textless{}{-}} \FunctionTok{vector}\NormalTok{(}\StringTok{"list"}\NormalTok{, }\FunctionTok{length}\NormalTok{(files))}
+\NormalTok{kmer\_ref }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+
+\ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \FunctionTok{seq\_along}\NormalTok{(files)) \{}
+\NormalTok{  dt }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(files[j])[line\_start}\SpecialCharTok{:}\NormalTok{line\_end]}
+  \ControlFlowTok{if}\NormalTok{ (j }\SpecialCharTok{==} \DecValTok{1}\NormalTok{) kmer\_ref }\OtherTok{\textless{}{-}}\NormalTok{ dt}\SpecialCharTok{$}\NormalTok{kmer}
+\NormalTok{  all\_cols[[j]] }\OtherTok{\textless{}{-}}\NormalTok{ dt[, }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, with }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{\}}
+
+\NormalTok{mat }\OtherTok{\textless{}{-}} \FunctionTok{do.call}\NormalTok{(cbind, all\_cols)}
+
+\NormalTok{media }\OtherTok{\textless{}{-}} \FunctionTok{rowMeans}\NormalTok{(mat)}
+\NormalTok{desvio }\OtherTok{\textless{}{-}} \FunctionTok{rowSds}\NormalTok{(mat)}
+\NormalTok{cv }\OtherTok{\textless{}{-}}\NormalTok{ desvio }\SpecialCharTok{/}\NormalTok{ media}
+
+\NormalTok{result }\OtherTok{\textless{}{-}} \FunctionTok{data.table}\NormalTok{(}\AttributeTok{kmer =}\NormalTok{ kmer\_ref, }\AttributeTok{mean =}\NormalTok{ media, }\AttributeTok{sd =}\NormalTok{ desvio, }\AttributeTok{cv =}\NormalTok{ cv)}
+
+\CommentTok{\# saving}
+\NormalTok{out\_path }\OtherTok{\textless{}{-}} \FunctionTok{sprintf}\NormalTok{(}\StringTok{"kmer\_count/chunks\_cv/chunk\_\%04d.rds"}\NormalTok{, chunk\_id)}
+\FunctionTok{dir.create}\NormalTok{(}\StringTok{"kmer\_count/chunks\_cv"}\NormalTok{, }\AttributeTok{showWarnings =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{saveRDS}\NormalTok{(result, out\_path)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Chunk"}\NormalTok{, chunk\_id, }\StringTok{"saved to"}\NormalTok{, out\_path, }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Output:} All files are available in the folder \texttt{CVbyChunck.tar.xz}.
+
+After processing all chunks, results were combined and kmers in the \textbf{top 25\%} of CV were retained.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{module}\NormalTok{ load R/4.2.1{-}foss{-}2022a}
+
+\ExtensionTok{sbatch} \AttributeTok{{-}{-}job{-}name}\OperatorTok{=}\NormalTok{R }\AttributeTok{{-}{-}time}\OperatorTok{=}\NormalTok{01{-}0:00:00 }\AttributeTok{{-}{-}mem}\OperatorTok{=}\NormalTok{100G }\AttributeTok{{-}{-}nodes}\OperatorTok{=}\NormalTok{1 }\AttributeTok{{-}{-}wrap}\OperatorTok{=}\StringTok{"R {-}{-}no{-}save {-}q \textless{} editFiles4.R"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  editFiles4.R
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/usr/bin/env Rscript}
+
+\FunctionTok{library}\NormalTok{(data.table)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+
+\NormalTok{file\_paths }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}kmer\_count/chunks\_cv/\textquotesingle{}}\NormalTok{, }\FunctionTok{list.files}\NormalTok{(}\StringTok{\textquotesingle{}kmer\_count/chunks\_cv/\textquotesingle{}}\NormalTok{))}
+
+\NormalTok{kmer\_cv }\OtherTok{\textless{}{-}} \FunctionTok{lapply}\NormalTok{(file\_paths, readRDS)}
+\NormalTok{kmer\_cv }\OtherTok{\textless{}{-}} \FunctionTok{do.call}\NormalTok{(rbind, kmer\_cv)}
+
+\FunctionTok{table}\NormalTok{(kmer\_count}\SpecialCharTok{$}\NormalTok{kmer }\SpecialCharTok{\%in\%}\NormalTok{ kmer\_cv}\SpecialCharTok{$}\NormalTok{kmer)}
+
+\NormalTok{kmer\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{left\_join}\NormalTok{(kmer\_cv, kmer\_count, }\AttributeTok{by =} \StringTok{"kmer"}\NormalTok{)}
+
+\CommentTok{\# top 25\%}
+\NormalTok{fasta\_lines }\OtherTok{\textless{}{-}}\NormalTok{  kmer\_metrics }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(cv }\SpecialCharTok{\textgreater{}} \FunctionTok{quantile}\NormalTok{(cv, }\FloatTok{0.75}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(cv), }\FunctionTok{desc}\NormalTok{(TOTAL)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{mean, }\SpecialCharTok{{-}}\NormalTok{sd)}
+
+\NormalTok{fasta\_lines }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"\textgreater{}kmer"}\NormalTok{, }\FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(kmer\_metrics)), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, kmer\_metrics}\SpecialCharTok{$}\NormalTok{kmer)}
+
+\FunctionTok{write\_lines}\NormalTok{(fasta\_lines, }\StringTok{"kmers\_min\_cv.fa"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+\textbf{Note:} The resulting file \texttt{kmers\_min\_cv.fa} contains the most variable and abundant k-mers for \texttt{cd-hit-est} clustering.
+\end{quote}
+
+\hypertarget{step-3-redundancy-removal-with-cd-hit-est}{%
+\subsection{Step 3: Redundancy Removal with CD-HIT-EST}\label{step-3-redundancy-removal-with-cd-hit-est}}
+
+Finally, to avoid feeding the models with 10 slightly different versions of the same sequence, I ran \texttt{CD-HIT-EST} with a \textbf{95\% identity threshold}. Only one representative per cluster was kept.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{module}\NormalTok{ load CD{-}HIT/4.8.1{-}GCC{-}11.3.0}
+
+\ExtensionTok{sbatch} \AttributeTok{{-}{-}job{-}name}\OperatorTok{=}\NormalTok{CdH }\AttributeTok{{-}{-}time}\OperatorTok{=}\NormalTok{05:00:00 }\AttributeTok{{-}{-}mem}\OperatorTok{=}\NormalTok{200G }\AttributeTok{{-}{-}ntasks{-}per{-}node}\OperatorTok{=}\NormalTok{20 }\AttributeTok{{-}{-}nodes}\OperatorTok{=}\NormalTok{1 }\AttributeTok{{-}{-}wrap}\OperatorTok{=}\StringTok{"cd{-}hit{-}est {-}i kmers\_min\_cv.fa {-}o kmers\_clustered.fa {-}c 0.95 {-}n 8 {-}T 20 {-}M 200000 {-}d 0"}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Output:} Clustering results and retained sequences are in the \texttt{cd-hit.tar.xz} folder.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{module}\NormalTok{ load R/4.2.1{-}foss{-}2022a}
+
+\ExtensionTok{sbatch} \AttributeTok{{-}{-}job{-}name}\OperatorTok{=}\NormalTok{R }\AttributeTok{{-}{-}time}\OperatorTok{=}\NormalTok{01{-}0:00:00 }\AttributeTok{{-}{-}mem}\OperatorTok{=}\NormalTok{100G }\AttributeTok{{-}{-}nodes}\OperatorTok{=}\NormalTok{1 }\AttributeTok{{-}{-}wrap}\OperatorTok{=}\StringTok{"R {-}{-}no{-}save {-}q \textless{} editFiles5.R"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  editFiles5.R
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#!/usr/bin/env Rscript}
+
+\FunctionTok{library}\NormalTok{(data.table)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(Biostrings)}
+
+\NormalTok{cdhit }\OtherTok{\textless{}{-}} \FunctionTok{readDNAStringSet}\NormalTok{(}\StringTok{"kmers\_clustered.fa"}\NormalTok{)}
+\NormalTok{seqs }\OtherTok{\textless{}{-}} \FunctionTok{as.character}\NormalTok{(cdhit)}
+\FunctionTok{head}\NormalTok{(seqs)}
+\FunctionTok{length}\NormalTok{(seqs) }
+
+\NormalTok{kmer\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{filter}\NormalTok{(kmer\_metrics, kmer }\SpecialCharTok{\%in\%}\NormalTok{ seqs) }\CommentTok{\#4.5M}
+\FunctionTok{head}\NormalTok{(kmer\_metrics)}
+\FunctionTok{hist}\NormalTok{(kmer\_metrics}\SpecialCharTok{$}\NormalTok{cv)}
+
+\CommentTok{\# count matrices {-}{-}{-}{-}}
+\NormalTok{path\_count }\OtherTok{\textless{}{-}} \FunctionTok{list.files}\NormalTok{(}\StringTok{"kmer\_count"}\NormalTok{, }\AttributeTok{pattern =} \StringTok{"\_filter\_min.rds$"}\NormalTok{, }\AttributeTok{full.names =} \ConstantTok{TRUE}\NormalTok{)}
+
+\NormalTok{count\_clean }\OtherTok{\textless{}{-}} \FunctionTok{data.table}\NormalTok{()}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \FunctionTok{seq\_along}\NormalTok{(path\_count))\{ }\CommentTok{\#4h}
+\NormalTok{  tmp }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(path\_count[i]) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(kmer }\SpecialCharTok{\%in\%}\NormalTok{ seqs2) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{arrange}\NormalTok{(}\FunctionTok{factor}\NormalTok{(kmer, }\AttributeTok{levels =}\NormalTok{ seqs)) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{column\_to\_rownames}\NormalTok{(}\AttributeTok{var =} \StringTok{\textquotesingle{}kmer\textquotesingle{}}\NormalTok{)}
+  
+\NormalTok{  count\_clean }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(count\_clean, tmp)}
+\NormalTok{\}}
+\FunctionTok{rownames}\NormalTok{(count\_clean) }\OtherTok{\textless{}{-}}\NormalTok{ seqs}
+
+\NormalTok{kmer\_metrics\_grouped }\OtherTok{\textless{}{-}}\NormalTok{ kmer\_metrics }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(mean, sd, TOTAL, cv) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{group\_id =} \FunctionTok{cur\_group\_id}\NormalTok{()) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ungroup}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{as.data.frame}\NormalTok{()}
+
+\NormalTok{kmer\_unique }\OtherTok{\textless{}{-}}\NormalTok{ kmer\_metrics\_grouped[}\SpecialCharTok{!}\FunctionTok{duplicated}\NormalTok{(kmer\_metrics\_grouped}\SpecialCharTok{$}\NormalTok{group\_id), ]}
+
+\NormalTok{count\_clean2 }\OtherTok{\textless{}{-}}\NormalTok{ count\_clean }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{rownames\_to\_column}\NormalTok{(}\StringTok{"kmer"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}           
+  \FunctionTok{filter}\NormalTok{(kmer }\SpecialCharTok{\%in\%}\NormalTok{ kmer\_unique}\SpecialCharTok{$}\NormalTok{kmer) }\SpecialCharTok{\%\textgreater{}\%}  
+  \FunctionTok{column\_to\_rownames}\NormalTok{(}\StringTok{"kmer"}\NormalTok{)         }
+
+\NormalTok{count\_clean2 }\OtherTok{\textless{}{-}} \FunctionTok{log2}\NormalTok{(count\_clean2 }\SpecialCharTok{+} \DecValTok{1}\NormalTok{)}
+\NormalTok{count\_clean2 }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(count\_clean2)}
+
+\FunctionTok{saveRDS}\NormalTok{(count\_clean, }\StringTok{\textquotesingle{}results/count\_clean.rds\textquotesingle{}}\NormalTok{)}
+\FunctionTok{saveRDS}\NormalTok{(kmer\_metrics, }\StringTok{\textquotesingle{}results/kmer\_metrics.rds\textquotesingle{}}\NormalTok{)}
+\FunctionTok{saveRDS}\NormalTok{(count\_clean2, }\StringTok{\textquotesingle{}results/count\_clean2.rds\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+All scripts used in this \sout{straightforward} chain of events are available in the \texttt{scripts/} directory, for anyone brave (or curious) enough to follow the path.
+\end{quote}
+
+  \bibliography{packages.bib}
+
+\end{document}

@@ -1,0 +1,97 @@
+---
+title: "Quality Control"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# Quality Control 
+
+Although this RNA-seq dataset came from a published study, it didn’t include any quality control metrics. So, I ran an independent QC check to make sure the reads was well. This included `FastQC`, `MultiQC`, and duplicate removal with `MarkDuplicates` from the Picard toolkit (all with the goal of reducing technical noise and *preserving my sanity* for the analyses ahead).
+
+## FastQC and MultiQC
+
+Each paired-end FASTQ file was evaluated using FastQC (v0.12.1) via SLURM array jobs. After that, I used MultiQC to bring everything together into one readable summary.
+
+```{bash, eval=FALSE}
+#!/bin/bash -l
+#SBATCH --job-name=data920_fastqc
+#SBATCH --time=02:00:00
+#SBATCH --mem=50G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=10
+#SBATCH --array=1-14
+
+# Load Fastqc 
+module load FastQC/0.12.1-Java-11
+
+# finding R1 and R2 files
+FASTQ_FILES_R1=($(ls /homes/grcampos/AGRO920/data/*_1.fastq.gz))
+FASTQ_FILES_R2=($(ls /homes/grcampos/AGRO920/data/*_2.fastq.gz))
+
+# One file per array index
+FILE_R1=${FASTQ_FILES_R1[$SLURM_ARRAY_TASK_ID - 1]} #bash arrays starts with 0
+FILE_R2=${FASTQ_FILES_R2[$SLURM_ARRAY_TASK_ID - 1]}
+
+# Running Fatsqc
+echo "Processing $FILE_R1 and $FILE_R2"
+fastqc -t 10 -o /homes/grcampos/AGRO920/fastqc_reports "$FILE_R1" "$FILE_R2"
+```
+
+```{bash, eval=FALSE}
+module load MultiQC/1.14-foss-2022a
+
+sbatch --job-name=mqc920 --time=02:00:00 --mem=10G --nodes=1 --wrap="multiqc /bulk/eakhunov/grcampos/embeddings/fastqc_reports -o /bulk/eakhunov/grcampos/embeddings/fastqc_reports"
+```
+
+**Output:** All FastQC and MultiQC reports are saved in the `fastqc_reports/` directory.
+
+[Click here to open the MultiQC report](files/multiqc_report.html){target="_blank"}
+
+## Duplicate Removal with MarkDuplicates
+
+Next, I addressed the possibility of overrepresented sequences, which could skew k-mer frequencies. Using Picard’s MarkDuplicates, I converted the FASTQ files to BAM, marked duplicates, converted them back to deduplicated FASTQ files, and cleaned up all the temporary BAMs to avoid filling up the server (again).
+
+```{bash, eval=FALSE}
+#!/bin/bash -l
+#SBATCH --job-name=data920_markD
+#SBATCH --time=4-00:00:00
+#SBATCH --mem=50G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=10
+#SBATCH --array=1-14
+
+module load picard/2.25.1-Java-11
+
+#  List of paired-end FASTQ files
+FASTQ_FILES_R1=($(ls data/*_1.fastq.gz))
+FASTQ_FILES_R2=($(ls data/*_2.fastq.gz))
+
+# One file per array index
+FILE_R1=${FASTQ_FILES_R1[$SLURM_ARRAY_TASK_ID - 1]}
+FILE_R2=${FASTQ_FILES_R2[$SLURM_ARRAY_TASK_ID - 1]}
+SAMPLE_NAME=$(basename "$FILE_R1" | sed 's/_1.fastq.gz//')
+
+echo "Processing sample: $SAMPLE_NAME"
+java -jar $EBROOTPICARD/picard.jar FastqToSam -F1="$FILE_R1" -F2="$FILE_R2" O="bam_files/${SAMPLE_NAME}_unaligned.bam" -SM="$SAMPLE_NAME"
+echo "FASTQ to BAM completed for $SAMPLE_NAME"
+
+# Remove duplicates with MarkDuplicates
+java -jar $EBROOTPICARD/picard.jar MarkDuplicates I="bam_files/${SAMPLE_NAME}_unaligned.bam" O="bam_files/${SAMPLE_NAME}_deduplicated.bam" M="bam_files/${SAMPLE_NAME}_duplicate_metrics.txt" REMOVE_DUPLICATES=true VALIDATION_STRINGENCY=LENIENT #Lenient: Display warnings but will continue processing even with minor errors.
+echo "MarkDuplicates completed for $SAMPLE_NAME"
+
+# Convert BAM back to FASTQ
+java -jar $EBROOTPICARD/picard.jar SamToFastq I="bam_files/${SAMPLE_NAME}_deduplicated.bam" F="fastq_filtered/${SAMPLE_NAME}_R1_clean.fastq.gz" F2="/fastq_filtered/${SAMPLE_NAME}_R2_clean.fastq.gz"
+echo "BAM to FASTQ completed for $SAMPLE_NAME"
+
+# Remove BAM files
+rm "bam_files/${SAMPLE_NAME}_unaligned.bam"
+rm "bam_files/${SAMPLE_NAME}_deduplicated.bam"
+
+echo "Processing completed for $SAMPLE_NAME!"
+```
+
+**Output:** All and duplication metrics (`*_duplicate_metrics.txt`) were saved to the `bam_files/` directory. The intermediate BAM files were removed to save memory.
+
+No major PCR duplication was observed. According to Picard, most samples had zero or negligible duplicated reads, meaning the original RNA-seq libraries were solid. 
+
+> Note: All scripts used in this section are stored in the `scripts/` directory as `02_runFastqc.sbatch`, and `03_runDeduplication.sbatch`.

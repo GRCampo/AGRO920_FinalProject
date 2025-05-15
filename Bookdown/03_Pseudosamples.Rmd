@@ -1,0 +1,140 @@
+---
+title: "Pseudosamples from Raw Reads"
+output: bookdown::html_document2
+bibliography: packages.bib
+---
+
+# Pseudosamples from Raw Reads
+
+The original dataset included only two biological replicates per treatment, which is definitely not enough for training machine learning models. To make the most of the data, I implemented a pseudosample strategy: **splitting each sample into 100 non-overlapping subsets while keeping the paired-end structure intact**. These pseudosamples aren’t biologically independent, but they allow the model to “see” more of the internal structure and variability while still respecting the original replicate boundaries during validation.
+
+## Merge Paired-end Reads into a Single FASTA
+
+Before splitting, forward and reverse reads were merged into a single interleaved FASTA file. This made downstream processing cleaner and kept both ends of each read together.
+
+```{bash, eval=FALSE}
+#!/bin/bash -l
+#SBATCH --job-name=data920
+#SBATCH --time=4-00:00:00
+#SBATCH --mem=50G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --array=1-14
+
+FASTQ_LIST=($(ls ./fasta_files/*_1.fasta))
+FASTQ1=${FASTQ_LIST[$SLURM_ARRAY_TASK_ID - 1]}
+FASTQ2=$(echo $FASTQ1 | sed 's/_1.fasta/_2.fasta/')  
+OUTPUT="$(basename "$FASTQ1" | sed 's/_1.fasta/_merged.fasta/')"
+
+cat "$FASTQ1" "$FASTQ2" > "$OUTPUT"
+
+echo "Done for $FASTQ1 e $FASTQ2!"
+```
+
+## Split into Pseudosamples
+
+Each merged FASTA file was then split into 100 pseudosamples in a seven-step routine that’s part bash wizardry, part bioinformatics therapy:
+
+
+- **Step 1: Extract unique base read IDs**  
+
+Pulled read IDs from the merged FASTA and removed `/1` and `/2` suffixes to match up read pairs. The goal: treat each pair as a single unit.
+
+- **Step 2: Shuffle**  
+
+Shuffled the read ID list to keep things unbiased.
+
+- **Step 3: Split into 100 pseudo-ID files** 
+
+Divided the shuffled list into 100 chunks. Each one would become a pseudosample.
+
+- **Step 4: Generate paired-end ID files**  
+
+Reattached the `/1` and `/2` to make sure paired reads were preserved. 
+
+- **Step 5: Create new pseudo-FASTA files**  
+
+Filtered the original merged FASTA to extract only the reads corresponding to each pseudo-ID file. **Result**: one FASTA per pseudosample.
+
+- **Step 6: Create summary file**  
+
+For each original sample, a table was created listing how many reads ended up in each pseudosample and what their IDs were. Future-me says thanks.
+
+- **Step 7: Clean up intermediate files**  
+
+Deleted the temporary ID files. They served their purpose.
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=pseudo_split
+#SBATCH --time=1-00:00:00
+#SBATCH --array=0-13
+#SBATCH --mem=25G
+#SBATCH --cpus-per-task=1
+
+echo "Job started on $(date)"
+FASTA_LIST=($(ls fasta_files/*_merged.fasta))
+FASTA="${FASTA_LIST[$SLURM_ARRAY_TASK_ID]}"
+BASENAME=$(basename "$FASTA" _merged.fasta)
+
+echo "Processing: $BASENAME"
+mkdir -p ps_fasta/${BASENAME}/ids
+
+# Step 1: Extract unique base read IDs
+echo "Extracting read IDs..."
+grep ">" "$FASTA" | sed 's/>//g' | sed 's/\/[12]$//' | sort -u > ps_fasta/${BASENAME}/ids/${BASENAME}_ID.txt
+
+# Step 2: Shuffle
+echo "Shuffling IDs..."
+shuf ps_fasta/${BASENAME}/ids/${BASENAME}_ID.txt > ps_fasta/${BASENAME}/ids/${BASENAME}_shufID.txt
+
+# Step 3: Split into 100 pseudo-ID files
+echo "Splitting into 100 pseudo-ID files..."
+total=$(wc -l < ps_fasta/${BASENAME}/ids/${BASENAME}_shufID.txt)
+lines_per_file=$(( (total + 99) / 100 ))
+
+split -l $lines_per_file -d -a 2 ps_fasta/${BASENAME}/ids/${BASENAME}_shufID.txt ps_fasta/${BASENAME}/ids/pseudo_
+
+# Step 4: Generate paired-end ID files
+echo "Creating paired-end ID files..."
+for f in ps_fasta/${BASENAME}/ids/pseudo_*; do
+    awk '{print $0"/1\n"$0"/2"}' "$f" > "${f}.txt"
+done
+
+# Step 5: Create new pseudo-fasta files
+echo "Generating pseudo-fasta files..."
+for i in $(seq -w 0 99); do
+    seqkit grep -f ps_fasta/${BASENAME}/ids/pseudo_${i}.txt "$FASTA" -o ps_fasta/${BASENAME}/${BASENAME}_ps${i}.fasta
+    echo "${BASENAME}_ps${i}.fasta done."
+done
+
+# Step 6: Create summary file
+echo "Creating summary..."
+SUMMARY_FILE="ps_fasta/${BASENAME}/pseudo_summary.txt"
+> "$SUMMARY_FILE"
+
+for f in ps_fasta/${BASENAME}/ids/pseudo_*; do
+    IDFILE=$(basename "$f")
+    GROUP="${IDFILE##*_}"
+    GROUP="${GROUP/.txt/}"
+
+    clean_ids=$(awk -F'/' '{print $1}' "$f" | sort -u)
+    count=$(echo "$clean_ids" | wc -l)
+    ids_line=$(echo "$clean_ids" | paste -sd "," -)
+
+    echo "> pseudo_${GROUP} (${count} reads)" >> "$SUMMARY_FILE"
+    echo "$ids_line" >> "$SUMMARY_FILE"
+done
+
+# Step 7: Clean up intermediate pseudo ID files
+echo "Cleaning up intermediate ID files..."
+rm ps_fasta/${BASENAME}/ids/pseudo_*
+
+echo "All pseudo-samples for $BASENAME created successfully on $(date)"
+```
+
+In total, this produced 1,400 pseudosamples (14 original samples $\times$ 100 splits), which were then used as input for k-mer decomposition and model training in the next phases.
+
+> **Note:** To keep memory usage under control, all pseudosample FASTA files and summary tables were compressed into `pseudoFastas.tar.xz`. Unpack only if you're ready.
+>
+> The scripts used to run this whole routine are in the `scripts/` directory.
